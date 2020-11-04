@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 /**
- * An executable command which will be added to $PATH.
+ * Use binary search to find Node.js build which introduced a bug.
+ * Node.js analog to mozregression.
  *
- * @copyright Copyright 2017-2019 Kevin Locke <kevin@kevinlocke.name>
+ * @copyright Copyright 2017-2020 Kevin Locke <kevin@kevinlocke.name>
  * @license MIT
  */
 
 'use strict';
 
 const Yargs = require('yargs/yargs');
+const noderegression = require('..');
 const packageJson = require('../package.json');
-const modulename = require('..');
+
+function coerceDateUTC(str) {
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) {
+    throw new TypeError(`Invalid Date: ${str}`);
+  }
+  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+}
 
 /** Options for command entry points.
  *
@@ -33,7 +42,7 @@ const modulename = require('..');
  * @param {!CommandOptions} options Options.
  * @param {function(number)} callback Callback with exit code.
  */
-function modulenameCmd(args, options, callback) {
+function noderegressionCmd(args, options, callback) {
   if (typeof callback !== 'function') {
     throw new TypeError('callback must be a function');
   }
@@ -72,14 +81,28 @@ function modulenameCmd(args, options, callback) {
       'flatten-duplicate-arrays': false,
       'greedy-arrays': false,
     })
-    .usage('Usage: $0 [options] [args...]')
+    .usage('Usage: $0 [options] -- <node args...>')
     .help()
     .alias('help', 'h')
     .alias('help', '?')
+    .option('bad', {
+      alias: ['b', 'new'],
+      coerce: coerceDateUTC,
+      describe: 'first date when issue was present',
+    })
+    .option('good', {
+      alias: ['g', 'old'],
+      coerce: coerceDateUTC,
+      describe: 'last date when issue was not present',
+    })
     .option('quiet', {
       alias: 'q',
       describe: 'Print less output',
       count: true,
+    })
+    .option('target', {
+      alias: 't',
+      describe: 'Build target name(s) in preference order',
     })
     .option('verbose', {
       alias: 'v',
@@ -96,7 +119,7 @@ function modulenameCmd(args, options, callback) {
       } else {
         options.stderr.write(`${err.name}: ${err.message}\n`);
       }
-      callback(undefined, 1);
+      callback(1);
       return;
     }
 
@@ -109,28 +132,41 @@ function modulenameCmd(args, options, callback) {
       return;
     }
 
-    if (argOpts._.length !== 1) {
-      options.stderr.write('Error: Exactly one argument is required.\n');
+    if (argOpts._.length === 0) {
+      options.stderr.write('Error: At least one node argument is required.\n');
       callback(1);
       return;
     }
 
     // Parse arguments then call API function with parsed options
     const cmdOpts = {
-      files: argOpts._,
+      bad: argOpts.bad,
+      good: argOpts.good,
+      targets: argOpts.target,
+      stderr: options.stderr,
+      stdout: options.stdout,
       verbosity: argOpts.verbose - argOpts.quiet,
     };
-    modulename(cmdOpts, callback);
+    // eslint-disable-next-line promise/catch-or-return
+    noderegression(argOpts._, cmdOpts)
+      .then(
+        () => 0,
+        (err2) => {
+          options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
+          return 1;
+        },
+      )
+      // eslint-disable-next-line promise/no-callback-in-promise
+      .then(callback);
   });
 }
 
-modulenameCmd.default = modulenameCmd;
-module.exports = modulenameCmd;
+module.exports = noderegressionCmd;
 
 if (require.main === module) {
   // This file was invoked directly.
   // Note:  Could pass process.exit as callback to force immediate exit.
-  modulenameCmd(process.argv, process, (exitCode) => {
+  noderegressionCmd(process.argv, process, (exitCode) => {
     process.exitCode = exitCode;
   });
 }
