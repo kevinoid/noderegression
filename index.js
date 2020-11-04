@@ -143,12 +143,19 @@ async function noderegression(nodeArgs, options) {
           if (code === 125) {
             throw new Error('skip not yet implemented for exit code 125');
           }
+
           const goodbad = code === 0 ? 'good' : 'bad';
-          // Output progress in format compatible with `git bisect log`
-          options.stdout.write(
-            `# ${goodbad}: ${build.version}\n`
-            + `git bisect ${goodbad} ${build.commit}\n`,
-          );
+          if (options.verbosity >= 1) {
+            options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
+          }
+          if (options.bisectLog) {
+            // Output progress in format compatible with `git bisect log`
+            options.bisectLog.write(
+              `# ${goodbad}: ${build.version}\n`
+              + `git bisect ${goodbad} ${build.commit}\n`,
+            );
+          }
+
           return code === 0 ? 1 : -1;
         }),
       undefined,

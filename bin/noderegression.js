@@ -10,8 +10,15 @@
 'use strict';
 
 const Yargs = require('yargs/yargs');
+const fs = require('fs');
+const stream = require('stream');
+const { promisify } = require('util');
+
 const noderegression = require('..');
 const packageJson = require('../package.json');
+
+// TODO [engine:node@>=15]: Use finished from 'streams/promise'
+const finished = promisify(stream.finished);
 
 function coerceDateUTC(str) {
   const date = new Date(str);
@@ -95,6 +102,10 @@ function noderegressionCmd(args, options, callback) {
       coerce: coerceDateUTC,
       describe: 'last date when issue was not present',
     })
+    .option('log', {
+      alias: 'l',
+      describe: 'save git bisect log to file',
+    })
     .option('quiet', {
       alias: 'q',
       describe: 'Print less output',
@@ -138,9 +149,22 @@ function noderegressionCmd(args, options, callback) {
       return;
     }
 
+    let exitCode = 0;
+    let bisectLog;
+    if (argOpts.log === '-') {
+      bisectLog = options.stdout;
+    } else if (argOpts.log) {
+      bisectLog = fs.createWriteStream(argOpts.log);
+      bisectLog.on('error', (errLog) => {
+        exitCode = 1;
+        options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
+      });
+    }
+
     // Parse arguments then call API function with parsed options
     const cmdOpts = {
       bad: argOpts.bad,
+      bisectLog,
       good: argOpts.good,
       targets: argOpts.target,
       stderr: options.stderr,
@@ -149,15 +173,22 @@ function noderegressionCmd(args, options, callback) {
     };
     // eslint-disable-next-line promise/catch-or-return
     noderegression(argOpts._, cmdOpts)
-      .then(
-        () => 0,
-        (err2) => {
-          options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
-          return 1;
-        },
-      )
+      .finally(async () => {
+        if (bisectLog && bisectLog !== options.stdout) {
+          bisectLog.end();
+          try {
+            await finished(bisectLog);
+          } catch {
+            // error already logged from 'error' event
+          }
+        }
+      })
+      .catch((err2) => {
+        exitCode = 1;
+        options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
+      })
       // eslint-disable-next-line promise/no-callback-in-promise
-      .then(callback);
+      .then(() => callback(exitCode));
   });
 }
 
