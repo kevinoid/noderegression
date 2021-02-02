@@ -84,6 +84,7 @@ function noderegressionCmd(args, options, callback) {
   const yargs = new Yargs()
     .parserConfiguration({
       'parse-numbers': false,
+      'parse-positional-numbers': false,
       'duplicate-arguments-array': false,
       'flatten-duplicate-arrays': false,
       'greedy-arrays': false,
@@ -123,13 +124,9 @@ function noderegressionCmd(args, options, callback) {
     .version(`${packageJson.name} ${packageJson.version}`)
     .alias('version', 'V')
     .strict();
-  yargs.parse(args, (err, argOpts, output) => {
-    if (err) {
-      if (output) {
-        options.stderr.write(`${output}\n`);
-      } else {
-        options.stderr.write(`${err.name}: ${err.message}\n`);
-      }
+  yargs.parse(args, (errYargs, argOpts, output) => {
+    if (errYargs) {
+      options.stderr.write(`${output || errYargs}\n`);
       callback(1);
       return;
     }
