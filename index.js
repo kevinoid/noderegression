@@ -84,6 +84,7 @@ async function noderegression(nodeArgs, options) {
       const {
         commit,
         date,
+        files,
         version,
       } = build;
       if (date < goodDateStr || date > badDateStr) {
@@ -91,7 +92,7 @@ async function noderegression(nodeArgs, options) {
       }
 
       // Surround needle and haystack with separator for easy string set search
-      const commaFiles = `,${build.files},`;
+      const commaFiles = `,${files},`;
       const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
       if (matchInd < 0) {
         return undefined;
