@@ -38,6 +38,42 @@ function buildToString(build) {
   return `${build.commit} on ${build.date}`;
 }
 
+function filterBuilds(allBuilds, options) {
+  const badDateStr =
+    options.bad ? options.bad.toISOString().slice(0, 10) : '9999-99-99';
+  const goodDateStr =
+    options.good ? options.good.toISOString().slice(0, 10) : '0000-00-00';
+
+  const commaTargets = options.targets.map((t) => `,${t},`);
+  return allBuilds
+    .map((build) => {
+      const {
+        commit,
+        date,
+        files,
+        version,
+      } = build;
+      if (date < goodDateStr || date > badDateStr) {
+        return undefined;
+      }
+
+      // Surround needle and haystack with separator for easy string set search
+      const commaFiles = `,${files},`;
+      const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
+      if (matchInd < 0) {
+        return undefined;
+      }
+
+      return {
+        commit,
+        date,
+        file: options.targets[matchInd],
+        version,
+      };
+    })
+    .filter(Boolean);
+}
+
 module.exports =
 async function noderegression([testCommand, ...testArgs], options) {
   if (!testCommand || typeof testCommand !== 'string') {
@@ -69,11 +105,6 @@ async function noderegression([testCommand, ...testArgs], options) {
     options.targets = getNodeTargetsForOS(os);
   }
 
-  const badDateStr =
-    options.bad ? options.bad.toISOString().slice(0, 10) : '9999-99-99';
-  const goodDateStr =
-    options.good ? options.good.toISOString().slice(0, 10) : '0000-00-00';
-
   if (options.good && options.good.getTime() <= minBuildDateMs) {
     options.stderr.write(
       'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
@@ -97,34 +128,8 @@ async function noderegression([testCommand, ...testArgs], options) {
     }
   }
 
-  const commaTargets = options.targets.map((t) => `,${t},`);
-  const builds = (await getBuildList(options.fetchOptions))
-    .map((build) => {
-      const {
-        commit,
-        date,
-        files,
-        version,
-      } = build;
-      if (date < goodDateStr || date > badDateStr) {
-        return undefined;
-      }
-
-      // Surround needle and haystack with separator for easy string set search
-      const commaFiles = `,${files},`;
-      const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
-      if (matchInd < 0) {
-        return undefined;
-      }
-
-      return {
-        commit,
-        date,
-        file: options.targets[matchInd],
-        version,
-      };
-    })
-    .filter(Boolean);
+  const allBuilds = await getBuildList(options.fetchOptions);
+  const builds = filterBuilds(allBuilds, options);
   if (builds.length === 0) {
     throw new Error(
       `No builds after ${options.good.toUTCString()} before ${
