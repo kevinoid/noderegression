@@ -29,6 +29,8 @@ const {
 } = fs.promises;
 const randomBytes = promisify(crypto.randomBytes);
 
+const minBuildDateMs = Date.UTC(2016, 0, 28);
+
 function buildToString(build) {
   if (!build) {
     return 'None found';
@@ -72,7 +74,7 @@ async function noderegression([testCommand, ...testArgs], options) {
   const goodDateStr =
     options.good ? options.good.toISOString().slice(0, 10) : '0000-00-00';
 
-  if (options.good && goodDateStr <= '2016-01-28') {
+  if (options.good && options.good.getTime() <= minBuildDateMs) {
     options.stderr.write(
       'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
       + 'dates out of sequence and differing exe URLs.',
