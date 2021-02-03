@@ -140,6 +140,7 @@ async function noderegression([testCommand, ...testArgs], options) {
   const rmExeDir = !options.exeDir;
   if (!options.exeDir) {
     const randomSuffixBytes = await randomBytes(6);
+    // TODO [engine:node@>=15.7]: Use base64url
     const randomSuffix = randomSuffixBytes.toString('base64')
       // Filename-safe base64url variant from RFC 4648
       .replace(/\+/g, '-')
