@@ -10,7 +10,8 @@
 
 const crypto = require('crypto');
 const fs = require('fs');
-const https = require('https');
+const { Agent: HttpAgent } = require('http');
+const { Agent: HttpsAgent } = require('https');
 const os = require('os');
 const path = require('path');
 const { promisify } = require('util');
@@ -47,16 +48,12 @@ async function noderegression([testCommand, ...testArgs], options) {
   options = {
     buildBaseUrl: 'https://nodejs.org/download/nightly/',
     ...options,
-    fetchOptions: {
-      ...options && options.fetchOptions,
-    },
   };
-  if (!options.fetchOptions.agent) {
-    options.fetchOptions.agent = new https.Agent({ keepAlive: true });
-  }
+
   if (!options.buildBaseUrl.endsWith('/')) {
     options.buildBaseUrl += '/';
   }
+
   if (!options.buildCacheDir) {
     const cacheDir = process.env.XDG_CACHE_HOME
       || process.env.LOCALAPPDATA
@@ -65,6 +62,7 @@ async function noderegression([testCommand, ...testArgs], options) {
         : path.join(os.homedir(), '.cache'));
     options.buildCacheDir = path.join(cacheDir, 'noderegression');
   }
+
   if (!options.targets) {
     options.targets = getNodeTargetsForOS(os);
   }
@@ -79,6 +77,22 @@ async function noderegression([testCommand, ...testArgs], options) {
       'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
       + 'dates out of sequence and differing exe URLs.',
     );
+  }
+
+  // Keep the connection alive for downloading builds
+  let agent;
+  if (!options.fetchOptions || !options.fetchOptions.agent) {
+    const { protocol } = new URL(options.buildBaseUrl);
+    const Agent = protocol === 'https:' ? HttpsAgent
+      : protocol === 'http:' ? HttpAgent
+        : undefined;
+    if (Agent) {
+      agent = new Agent({ keepAlive: true });
+      options.fetchOptions = {
+        ...options.fetchOptions,
+        agent,
+      };
+    }
   }
 
   const commaTargets = options.targets.map((t) => `,${t},`);
