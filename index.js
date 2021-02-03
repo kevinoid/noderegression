@@ -47,9 +47,12 @@ async function noderegression([testCommand, ...testArgs], options) {
   options = {
     buildBaseUrl: 'https://nodejs.org/download/nightly/',
     ...options,
+    fetchOptions: {
+      ...options && options.fetchOptions,
+    },
   };
-  if (!options.agent) {
-    options.agent = new https.Agent({ keepAlive: true });
+  if (!options.fetchOptions.agent) {
+    options.fetchOptions.agent = new https.Agent({ keepAlive: true });
   }
   if (!options.buildBaseUrl.endsWith('/')) {
     options.buildBaseUrl += '/';
@@ -79,7 +82,7 @@ async function noderegression([testCommand, ...testArgs], options) {
   }
 
   const commaTargets = options.targets.map((t) => `,${t},`);
-  const builds = (await getBuildList(options))
+  const builds = (await getBuildList(options.fetchOptions))
     .map((build) => {
       const {
         commit,
