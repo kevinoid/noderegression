@@ -36,9 +36,9 @@ function buildToString(build) {
 }
 
 module.exports =
-async function noderegression(nodeArgs, options) {
-  if (!nodeArgs || !(nodeArgs.length > 0)) {
-    throw new TypeError('nodeArgs must be Array-like with length > 0');
+async function noderegression([testCommand, ...testArgs], options) {
+  if (!testCommand || typeof testCommand !== 'string') {
+    throw new TypeError('testCommand must be a non-empty string');
   }
   if (options !== undefined && typeof options !== 'object') {
     throw new TypeError('options must be an object');
@@ -133,7 +133,7 @@ async function noderegression(nodeArgs, options) {
   try {
     found = await binarySearchAsync(
       builds,
-      (build) => runNodeBuild(build, nodeArgs, options)
+      (build) => runNodeBuild(build, testCommand, testArgs, options)
         .then(({ code, signal }) => {
           if (signal) {
             throw new Error(`node killed with ${signal}`);

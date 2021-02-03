@@ -143,7 +143,7 @@ function noderegressionCmd(args, options, callback) {
     }
 
     if (argOpts._.length === 0) {
-      options.stderr.write('Error: At least one node argument is required.\n');
+      options.stderr.write('Error: Must specify a test command to run.\n');
       callback(1);
       return;
     }
