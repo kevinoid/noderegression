@@ -31,10 +31,12 @@ function coerceDateUTC(str) {
 /** Options for command entry points.
  *
  * @typedef {{
+ *   env: object<string,string>|undefined,
  *   stdin: !module:stream.Readable,
  *   stdout: !module:stream.Writable,
  *   stderr: !module:stream.Writable
  * }} CommandOptions
+ * @property {object<string,string>=} env Environment variables.
  * @property {!module:stream.Readable} stdin Stream from which input is read.
  * @property {!module:stream.Writable} stdout Stream to which output is
  * written.
@@ -162,6 +164,7 @@ function noderegressionCmd(args, options, callback) {
     const cmdOpts = {
       bad: argOpts.bad,
       bisectLog,
+      env: options.env,
       good: argOpts.good,
       targets: argOpts.target,
       stderr: options.stderr,
