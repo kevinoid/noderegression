@@ -150,7 +150,7 @@ async function noderegression([testCommand, ...testArgs], options) {
     // https://stackoverflow.com/a/15711534
     // https://github.com/nodejs/node/issues/10745
     // https://github.com/nodejs/node/pull/31351
-    options.exeDir = path.join(os.tmpdir(), `noderegression.${randomSuffix}`);
+    options.exeDir = path.join(os.tmpdir(), `noderegression-${randomSuffix}`);
     await mkdir(options.exeDir, { mode: 0o755 });
   }
 
