@@ -38,38 +38,26 @@ function buildToString(build) {
   return `${build.commit} on ${build.date}`;
 }
 
-function filterBuilds(allBuilds, options) {
-  const badDateStr =
-    options.bad ? options.bad.toISOString().slice(0, 10) : '9999-99-99';
-  const goodDateStr =
-    options.good ? options.good.toISOString().slice(0, 10) : '0000-00-00';
+function filterByDate(builds, after, before) {
+  const afterStr =
+    after ? after.toISOString().slice(0, 10) : '0000-00-00';
+  const beforeStr =
+    before ? before.toISOString().slice(0, 10) : '9999-99-99';
 
-  const commaTargets = options.targets.map((t) => `,${t},`);
-  return allBuilds
+  return builds.filter(({ date }) => date < afterStr || date > beforeStr);
+}
+
+function getBuildTargetPairs(builds, targets) {
+  // Surround needle and haystack with separator for easy string set search
+  const commaTargets = targets.map((t) => `,${t},`);
+  return builds
     .map((build) => {
-      const {
-        commit,
-        date,
-        files,
-        version,
-      } = build;
-      if (date < goodDateStr || date > badDateStr) {
-        return undefined;
-      }
-
-      // Surround needle and haystack with separator for easy string set search
-      const commaFiles = `,${files},`;
+      const commaFiles = `,${build.files},`;
       const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
       if (matchInd < 0) {
         return undefined;
       }
-
-      return {
-        commit,
-        date,
-        file: options.targets[matchInd],
-        version,
-      };
+      return [build, targets[matchInd]];
     })
     .filter(Boolean);
 }
@@ -129,8 +117,16 @@ async function noderegression([testCommand, ...testArgs], options) {
   }
 
   const allBuilds = await getBuildList(options.fetchOptions);
-  const builds = filterBuilds(allBuilds, options);
-  if (builds.length === 0) {
+  const dateBuilds = filterByDate(allBuilds, options.good, options.bad);
+  if (dateBuilds.length === 0) {
+    throw new Error(
+      `No builds after ${options.good.toUTCString()} before ${
+        options.bad.toUTCString()}`,
+    );
+  }
+
+  const buildTargetPairs = getBuildTargetPairs(dateBuilds, options.targets);
+  if (buildTargetPairs.length === 0) {
     throw new Error(
       `No builds after ${options.good.toUTCString()} before ${
         options.bad.toUTCString()} for ${options.targets.join()}`,
@@ -157,33 +153,39 @@ async function noderegression([testCommand, ...testArgs], options) {
   let found;
   try {
     found = await binarySearchAsync(
-      builds,
-      (build) => runNodeBuild(build, testCommand, testArgs, options)
-        .then(({ code, signal }) => {
-          if (signal) {
-            throw new Error(`node killed with ${signal}`);
-          }
-          if (code < 0 || code >= 128) {
-            throw new Error(`exit code ${code} is < 0 or >= 128`);
-          }
-          if (code === 125) {
-            throw new Error('skip not yet implemented for exit code 125');
-          }
+      buildTargetPairs,
+      async ([build, target]) => {
+        const { code, signal } = await runNodeBuild(
+          build.version,
+          target,
+          testCommand,
+          testArgs,
+          options,
+        );
+        if (signal) {
+          throw new Error(`node killed with ${signal}`);
+        }
+        if (code < 0 || code >= 128) {
+          throw new Error(`exit code ${code} is < 0 or >= 128`);
+        }
+        if (code === 125) {
+          throw new Error('skip not yet implemented for exit code 125');
+        }
 
-          const goodbad = code === 0 ? 'good' : 'bad';
-          if (options.verbosity >= 1) {
-            options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
-          }
-          if (options.bisectLog) {
-            // Output progress in format compatible with `git bisect log`
-            options.bisectLog.write(
-              `# ${goodbad}: ${build.version}\n`
-              + `git bisect ${goodbad} ${build.commit}\n`,
-            );
-          }
+        const goodbad = code === 0 ? 'good' : 'bad';
+        if (options.verbosity >= 1) {
+          options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
+        }
+        if (options.bisectLog) {
+          // Output progress in format compatible with `git bisect log`
+          options.bisectLog.write(
+            `# ${goodbad}: ${build.version}\n`
+            + `git bisect ${goodbad} ${build.commit}\n`,
+          );
+        }
 
-          return code === 0 ? 1 : -1;
-        }),
+        return code === 0 ? 1 : -1;
+      },
       undefined,
       undefined,
       (low, high) => {
@@ -209,9 +211,9 @@ async function noderegression([testCommand, ...testArgs], options) {
   }
 
   const firstBadInd = -found - 1;
-  const goodBuild = builds[firstBadInd - 1];
+  const goodBuild = buildTargetPairs[firstBadInd - 1][0];
   options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
-  const badBuild = builds[firstBadInd];
+  const badBuild = buildTargetPairs[firstBadInd][0];
   options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
   return 0;
 };
