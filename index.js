@@ -14,13 +14,14 @@ const { Agent: HttpAgent } = require('http');
 const { Agent: HttpsAgent } = require('https');
 const os = require('os');
 const path = require('path');
-const { promisify } = require('util');
+const { debuglog, promisify } = require('util');
 
 const binarySearchAsync = require('./lib/binary-search-async.js');
 const getBuildList = require('./lib/get-build-list.js');
 const getNodeTargetsForOS = require('./lib/get-node-targets-for-os.js');
 const runNodeBuild = require('./lib/run-node-build.js');
 
+const debug = debuglog('noderegression');
 const {
   mkdir,
   rmdir,
@@ -65,6 +66,7 @@ function getBuildTargetPairs(builds, targets) {
  */
 function ensureAgent(options) {
   if (options.fetchOptions && options.fetchOptions.agent) {
+    debug('Using caller-provided http.Agent.');
     return undefined;
   }
 
@@ -73,9 +75,11 @@ function ensureAgent(options) {
     : protocol === 'http:' ? HttpAgent
       : undefined;
   if (!Agent) {
+    debug('Unable to create keep-alive Agent for %s.', protocol);
     return undefined;
   }
 
+  debug('Creating keep-alive http.Agent.');
   const agent = new Agent({ keepAlive: true });
   options.fetchOptions = {
     ...options.fetchOptions,
