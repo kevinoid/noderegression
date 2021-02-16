@@ -14,7 +14,7 @@ const fs = require('fs');
 const stream = require('stream');
 const { promisify } = require('util');
 
-const noderegression = require('..');
+const { bisectRange } = require('..');
 const packageJson = require('../package.json');
 
 // TODO [engine:node@>=15]: Use finished from 'streams/promise'
@@ -169,17 +169,16 @@ function noderegressionCmd(args, options, callback) {
 
     // Parse arguments then call API function with parsed options
     const cmdOpts = {
-      bad: argOpts.bad,
       bisectLog,
       env: options.env,
-      good: argOpts.good,
       targets: argOpts.target,
       stderr: options.stderr,
       stdout: options.stdout,
       verbosity: argOpts.verbose - argOpts.quiet,
     };
     try {
-      const [goodBuild, badBuild] = await noderegression(argOpts._, cmdOpts);
+      const [goodBuild, badBuild] =
+        await bisectRange(argOpts.good, argOpts.bad, argOpts._, cmdOpts);
       options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
       options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
     } catch (err2) {

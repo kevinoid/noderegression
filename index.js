@@ -55,8 +55,8 @@ function getBuildTargetPairs(builds, targets) {
     .filter(Boolean);
 }
 
-module.exports =
-async function noderegression([testCommand, ...testArgs], options) {
+exports.bisectRange =
+async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
   if (!testCommand || typeof testCommand !== 'string') {
     throw new TypeError('testCommand must be a non-empty string');
   }
@@ -86,7 +86,7 @@ async function noderegression([testCommand, ...testArgs], options) {
     options.targets = getNodeTargetsForOS(os);
   }
 
-  if (options.good && options.good.getTime() <= minBuildDateMs) {
+  if (good && good.getTime() <= minBuildDateMs) {
     options.stderr.write(
       'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
       + 'dates out of sequence and differing exe URLs.',
@@ -110,11 +110,11 @@ async function noderegression([testCommand, ...testArgs], options) {
   }
 
   const allBuilds = await getBuildList(options.fetchOptions);
-  const dateBuilds = filterByDate(allBuilds, options.good, options.bad);
+  const dateBuilds = filterByDate(allBuilds, good, bad);
   if (dateBuilds.length === 0) {
     throw new Error(
       `No builds after ${options.good.toUTCString()} before ${
-        options.bad.toUTCString()}`,
+        bad.toUTCString()}`,
     );
   }
 
@@ -122,7 +122,7 @@ async function noderegression([testCommand, ...testArgs], options) {
   if (buildTargetPairs.length === 0) {
     throw new Error(
       `No builds after ${options.good.toUTCString()} before ${
-        options.bad.toUTCString()} for ${options.targets.join()}`,
+        bad.toUTCString()} for ${options.targets.join()}`,
     );
   }
 
