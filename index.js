@@ -32,6 +32,7 @@ const randomBytes = promisify(crypto.randomBytes);
 
 const defaultOptions = {
   buildBaseUrl: 'https://nodejs.org/download/nightly/',
+  stderr: process.stderr,
 };
 const minBuildDateMs = Date.UTC(2016, 0, 28);
 
@@ -100,13 +101,6 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
     throw new TypeError('options must be an object');
   }
 
-  if (good && good.getTime() <= minBuildDateMs) {
-    options.stderr.write(
-      'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
-      + 'dates out of sequence and differing exe URLs.',
-    );
-  }
-
   options = {
     ...defaultOptions,
     ...options,
@@ -114,6 +108,13 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
 
   if (!options.buildBaseUrl.endsWith('/')) {
     options.buildBaseUrl += '/';
+  }
+
+  if (good && good.getTime() <= minBuildDateMs) {
+    options.stderr.write(
+      'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
+      + 'dates out of sequence and differing exe URLs.',
+    );
   }
 
   // Keep the connection alive for downloading builds
