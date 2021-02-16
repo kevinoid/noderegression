@@ -29,6 +29,9 @@ const {
 } = fs.promises;
 const randomBytes = promisify(crypto.randomBytes);
 
+const defaultOptions = {
+  buildBaseUrl: 'https://nodejs.org/download/nightly/',
+};
 const minBuildDateMs = Date.UTC(2016, 0, 28);
 
 function filterByDate(builds, after, before) {
@@ -55,8 +58,75 @@ function getBuildTargetPairs(builds, targets) {
     .filter(Boolean);
 }
 
+/** Ensure a given options object has fetchOptions.agent.
+ *
+ * @param {!object} options Options object to modify.
+ * @returns {!module:http.Agent|undefined} Agent, if one was created.
+ */
+function ensureAgent(options) {
+  if (options.fetchOptions && options.fetchOptions.agent) {
+    return undefined;
+  }
+
+  const { protocol } = new URL(options.buildBaseUrl);
+  const Agent = protocol === 'https:' ? HttpsAgent
+    : protocol === 'http:' ? HttpAgent
+      : undefined;
+  if (!Agent) {
+    return undefined;
+  }
+
+  const agent = new Agent({ keepAlive: true });
+  options.fetchOptions = {
+    ...options.fetchOptions,
+    agent,
+  };
+  return agent;
+}
+
 exports.bisectRange =
-async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
+async function bisectRange(good, bad, testCmdWithArgs, options) {
+  if (!testCmdWithArgs
+    || typeof testCmdWithArgs[Symbol.iterator] !== 'function') {
+    throw new TypeError('testCmdWithArgs must be iterable');
+  }
+  if (options !== undefined && typeof options !== 'object') {
+    throw new TypeError('options must be an object');
+  }
+
+  if (good && good.getTime() <= minBuildDateMs) {
+    options.stderr.write(
+      'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
+      + 'dates out of sequence and differing exe URLs.',
+    );
+  }
+
+  options = {
+    ...defaultOptions,
+    ...options,
+  };
+
+  // Keep the connection alive for downloading builds
+  const agent = ensureAgent(options);
+  try {
+    const allBuilds = await getBuildList(options.fetchOptions);
+    const dateBuilds = filterByDate(allBuilds, good, bad);
+    if (dateBuilds.length === 0) {
+      throw new Error(
+        `No builds after ${good.toUTCString()} before ${bad.toUTCString()}`,
+      );
+    }
+
+    return await exports.bisectBuilds(dateBuilds, testCmdWithArgs, options);
+  } finally {
+    if (agent) {
+      agent.destroy();
+    }
+  }
+};
+
+exports.bisectBuilds =
+async function bisectBuilds(dateBuilds, [testCommand, ...testArgs], options) {
   if (!testCommand || typeof testCommand !== 'string') {
     throw new TypeError('testCommand must be a non-empty string');
   }
@@ -65,7 +135,7 @@ async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
   }
 
   options = {
-    buildBaseUrl: 'https://nodejs.org/download/nightly/',
+    ...defaultOptions,
     ...options,
   };
 
@@ -86,44 +156,9 @@ async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
     options.targets = getNodeTargetsForOS(os);
   }
 
-  if (good && good.getTime() <= minBuildDateMs) {
-    options.stderr.write(
-      'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
-      + 'dates out of sequence and differing exe URLs.',
-    );
-  }
-
-  // Keep the connection alive for downloading builds
-  let agent;
-  if (!options.fetchOptions || !options.fetchOptions.agent) {
-    const { protocol } = new URL(options.buildBaseUrl);
-    const Agent = protocol === 'https:' ? HttpsAgent
-      : protocol === 'http:' ? HttpAgent
-        : undefined;
-    if (Agent) {
-      agent = new Agent({ keepAlive: true });
-      options.fetchOptions = {
-        ...options.fetchOptions,
-        agent,
-      };
-    }
-  }
-
-  const allBuilds = await getBuildList(options.fetchOptions);
-  const dateBuilds = filterByDate(allBuilds, good, bad);
-  if (dateBuilds.length === 0) {
-    throw new Error(
-      `No builds after ${options.good.toUTCString()} before ${
-        bad.toUTCString()}`,
-    );
-  }
-
   const buildTargetPairs = getBuildTargetPairs(dateBuilds, options.targets);
   if (buildTargetPairs.length === 0) {
-    throw new Error(
-      `No builds after ${options.good.toUTCString()} before ${
-        bad.toUTCString()} for ${options.targets.join()}`,
-    );
+    throw new Error(`No builds in given range for ${options.targets.join()}`);
   }
 
   const rmExeDir = !options.exeDir;
@@ -142,6 +177,9 @@ async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
     options.exeDir = path.join(os.tmpdir(), `noderegression-${randomSuffix}`);
     await mkdir(options.exeDir, { mode: 0o755 });
   }
+
+  // Keep the connection alive for downloading multiple builds
+  const agent = ensureAgent(options);
 
   let found;
   try {
