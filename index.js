@@ -110,10 +110,17 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
     ...options,
   };
 
+  if (!options.buildBaseUrl.endsWith('/')) {
+    options.buildBaseUrl += '/';
+  }
+
   // Keep the connection alive for downloading builds
   const agent = ensureAgent(options);
   try {
-    const allBuilds = await getBuildList(options.fetchOptions);
+    const allBuilds = await getBuildList(
+      `${options.buildBaseUrl}index.json`,
+      options.fetchOptions,
+    );
     const dateBuilds = filterByDate(allBuilds, good, bad);
     if (dateBuilds.length === 0) {
       throw new Error(
