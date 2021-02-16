@@ -284,12 +284,6 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
           testArgs,
           options,
         );
-        if (signal) {
-          throw new Error(`node killed with ${signal}`);
-        }
-        if (code < 0 || code >= 128) {
-          throw new Error(`exit code ${code} is < 0 or >= 128`);
-        }
         if (code === 125) {
           throw new Error('skip not yet implemented for exit code 125');
         }
