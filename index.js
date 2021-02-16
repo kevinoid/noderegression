@@ -141,7 +141,7 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
 };
 
 exports.bisectBuilds =
-async function bisectBuilds(dateBuilds, [testCommand, ...testArgs], options) {
+async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
   if (!testCommand || typeof testCommand !== 'string') {
     throw new TypeError('testCommand must be a non-empty string');
   }
@@ -171,7 +171,7 @@ async function bisectBuilds(dateBuilds, [testCommand, ...testArgs], options) {
     options.targets = getNodeTargetsForOS(os);
   }
 
-  const buildTargetPairs = getBuildTargetPairs(dateBuilds, options.targets);
+  const buildTargetPairs = getBuildTargetPairs(builds, options.targets);
   if (buildTargetPairs.length === 0) {
     throw new Error(`No builds in given range for ${options.targets.join()}`);
   }
