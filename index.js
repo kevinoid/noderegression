@@ -32,6 +32,7 @@ const randomBytes = promisify(crypto.randomBytes);
 
 const defaultOptions = {
   buildBaseUrl: 'https://nodejs.org/download/nightly/',
+  env: process.env,
   stderr: process.stderr,
 };
 const minBuildDateMs = Date.UTC(2016, 0, 28);
@@ -158,8 +159,8 @@ async function bisectBuilds(dateBuilds, [testCommand, ...testArgs], options) {
   }
 
   if (!options.buildCacheDir) {
-    const cacheDir = process.env.XDG_CACHE_HOME
-      || process.env.LOCALAPPDATA
+    const cacheDir = options.env.XDG_CACHE_HOME
+      || options.env.LOCALAPPDATA
       || (process.platform === 'win32'
         ? path.join(os.homedir(), 'AppData', 'Local')
         : path.join(os.homedir(), '.cache'));
