@@ -192,6 +192,10 @@ async function bisectRange(good, bad, [testCommand, ...testArgs], options) {
       },
     );
   } finally {
+    if (agent) {
+      agent.destroy();
+    }
+
     if (rmExeDir) {
       try {
         await rmdir(options.exeDir, { recursive: true });
