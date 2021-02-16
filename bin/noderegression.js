@@ -20,6 +20,13 @@ const packageJson = require('../package.json');
 // TODO [engine:node@>=15]: Use finished from 'streams/promise'
 const finished = promisify(stream.finished);
 
+function buildToString(build) {
+  if (!build) {
+    return 'None found';
+  }
+  return `${build.commit} on ${build.date}`;
+}
+
 function coerceDateUTC(str) {
   const date = new Date(str);
   if (Number.isNaN(date.getTime())) {
@@ -126,7 +133,7 @@ function noderegressionCmd(args, options, callback) {
     .version(`${packageJson.name} ${packageJson.version}`)
     .alias('version', 'V')
     .strict();
-  yargs.parse(args, (errYargs, argOpts, output) => {
+  yargs.parse(args, async (errYargs, argOpts, output) => {
     if (errYargs) {
       options.stderr.write(`${output || errYargs}\n`);
       callback(1);
@@ -171,24 +178,25 @@ function noderegressionCmd(args, options, callback) {
       stdout: options.stdout,
       verbosity: argOpts.verbose - argOpts.quiet,
     };
-    // eslint-disable-next-line promise/catch-or-return
-    noderegression(argOpts._, cmdOpts)
-      .finally(async () => {
-        if (bisectLog && bisectLog !== options.stdout) {
-          bisectLog.end();
-          try {
-            await finished(bisectLog);
-          } catch {
-            // error already logged from 'error' event
-          }
+    try {
+      const [goodBuild, badBuild] = await noderegression(argOpts._, cmdOpts);
+      options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
+      options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
+    } catch (err2) {
+      exitCode = 1;
+      options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
+    } finally {
+      if (bisectLog && bisectLog !== options.stdout) {
+        bisectLog.end();
+        try {
+          await finished(bisectLog);
+        } catch {
+          // error already logged from 'error' event
         }
-      })
-      .catch((err2) => {
-        exitCode = 1;
-        options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
-      })
-      // eslint-disable-next-line promise/no-callback-in-promise
-      .then(() => callback(exitCode));
+      }
+    }
+
+    callback(exitCode);
   });
 }
 

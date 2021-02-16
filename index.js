@@ -31,13 +31,6 @@ const randomBytes = promisify(crypto.randomBytes);
 
 const minBuildDateMs = Date.UTC(2016, 0, 28);
 
-function buildToString(build) {
-  if (!build) {
-    return 'None found';
-  }
-  return `${build.commit} on ${build.date}`;
-}
-
 function filterByDate(builds, after, before) {
   const afterStr =
     after ? after.toISOString().slice(0, 10) : '0000-00-00';
@@ -212,8 +205,6 @@ async function noderegression([testCommand, ...testArgs], options) {
 
   const firstBadInd = -found - 1;
   const goodBuild = buildTargetPairs[firstBadInd - 1][0];
-  options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
   const badBuild = buildTargetPairs[firstBadInd][0];
-  options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
-  return 0;
+  return [goodBuild, badBuild];
 };
