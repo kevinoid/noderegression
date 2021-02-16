@@ -88,6 +88,8 @@ function ensureAgent(options) {
   return agent;
 }
 
+exports.getBuildList = getBuildList;
+
 exports.bisectRange =
 async function bisectRange(good, bad, testCmdWithArgs, options) {
   if (!testCmdWithArgs
