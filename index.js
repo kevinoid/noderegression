@@ -91,19 +91,16 @@ function filterByDate(builds, after, before) {
   return builds.filter(({ date }) => date < afterStr || date > beforeStr);
 }
 
-function getBuildTargetPairs(builds, targets) {
+function* getBuildTargetPairs(builds, targets) {
   // Surround needle and haystack with separator for easy string set search
   const commaTargets = targets.map((t) => `,${t},`);
-  return builds
-    .map((build) => {
-      const commaFiles = `,${build.files},`;
-      const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
-      if (matchInd < 0) {
-        return undefined;
-      }
-      return [build, targets[matchInd]];
-    })
-    .filter(Boolean);
+  for (const build of builds) {
+    const commaFiles = `,${build.files},`;
+    const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
+    if (matchInd >= 0) {
+      yield [build, targets[matchInd]];
+    }
+  }
 }
 
 /** Ensure a given options object has fetchOptions.agent.
@@ -250,7 +247,7 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
     options.targets = getNodeTargetsForOS(os);
   }
 
-  const buildTargetPairs = getBuildTargetPairs(builds, options.targets);
+  const buildTargetPairs = [...getBuildTargetPairs(builds, options.targets)];
   if (buildTargetPairs.length === 0) {
     throw new Error(`No builds in given range for ${options.targets.join()}`);
   }
