@@ -5,6 +5,7 @@
  *
  * @copyright Copyright 2017-2021 Kevin Locke <kevin@kevinlocke.name>
  * @license MIT
+ * @module noderegression/bin/noderegression
  */
 
 'use strict';
