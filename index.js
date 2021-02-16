@@ -2,7 +2,7 @@
  * Use binary search to find Node.js build which introduced a bug.
  * Node.js analog to mozregression.
  *
- * @copyright Copyright 2016-2020 Kevin Locke <kevin@kevinlocke.name>
+ * @copyright Copyright 2016-2021 Kevin Locke <kevin@kevinlocke.name>
  * @license MIT
  */
 
