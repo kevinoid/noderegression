@@ -182,6 +182,10 @@ function noderegressionCmd(args, options, callback) {
       env: options.env,
       fetch: verbosity < 0 ? fetch : (reqInfo, reqInit) => {
         options.stderr.write(`Downloading ${reqInfo.url || reqInfo}...\n`);
+        // Note: Logging progress information is difficult.  See:
+        // https://github.com/node-fetch/node-fetch/issues/427
+        // https://github.com/whatwg/fetch/issues/607#issuecomment-564461907
+        // (Does not work correctly for responses with Content-Encoding.)
         return fetch(reqInfo, reqInit);
       },
       listeners: {
