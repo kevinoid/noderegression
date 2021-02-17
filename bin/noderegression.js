@@ -11,6 +11,7 @@
 'use strict';
 
 const Yargs = require('yargs/yargs');
+const fetch = require('node-fetch');
 const fs = require('fs');
 const stream = require('stream');
 const { promisify } = require('util');
@@ -171,6 +172,10 @@ function noderegressionCmd(args, options, callback) {
     // Parse arguments then call API function with parsed options
     const cmdOpts = {
       env: options.env,
+      fetch: options.verbosity < 0 ? fetch : (reqInfo, reqInit) => {
+        options.stderr.write(`Downloading ${reqInfo.url || reqInfo}...\n`);
+        return fetch(reqInfo, reqInit);
+      },
       listeners: {
         onrange: (low, high) => {
           if (options.verbosity >= 0) {
