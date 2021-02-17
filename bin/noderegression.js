@@ -172,6 +172,15 @@ function noderegressionCmd(args, options, callback) {
     const cmdOpts = {
       env: options.env,
       listeners: {
+        onrange: (low, high) => {
+          if (options.verbosity >= 0) {
+            const count = high - low + 1;
+            const steps = Math.ceil(Math.log2(count)) + 1;
+            options.stderr.write(
+              `${count} builds left to test (~${steps} steps)\n`,
+            );
+          }
+        },
         onresult: (build, code, signal) => {
           const goodbad = code === 0 ? 'good' : 'bad';
           if (options.verbosity >= 1) {

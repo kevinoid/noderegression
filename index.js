@@ -57,6 +57,9 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
 /** noderegression listener functions.
  *
  * @typedef {!object} NoderegressionListeners
+ * @property {function(number, number)=} onrange Listener function which is
+ * called with the lower and upper bound of the regression range whenever the
+ * range has been reduced.
  * @property {function(!BuildInfo, ?number, ?string)=} onresult Listener
  * function which is called after the test command finishes executing, with the
  * tested Node.js build information, test exit code, and name of the signal by
@@ -280,7 +283,7 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
   // Keep the connection alive for downloading multiple builds
   const agent = ensureAgent(options);
 
-  const { onresult } = options.listeners || {};
+  const { onrange, onresult } = options.listeners || {};
 
   let found;
   try {
@@ -306,15 +309,7 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
       },
       undefined,
       undefined,
-      (low, high) => {
-        if (options.verbosity >= 0) {
-          const count = high - low + 1;
-          const steps = Math.ceil(Math.log2(count)) + 1;
-          options.stderr.write(
-            `${count} builds left to test (~${steps} steps)\n`,
-          );
-        }
-      },
+      onrange,
     );
   } finally {
     if (agent) {
