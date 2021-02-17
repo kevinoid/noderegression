@@ -90,9 +90,6 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * each build is used. (default: targets for current platform)
  * @property {!module:stream.Writable=} stderr Stream to which errors and
  * non-output status messages are written.  (default: process.stderr)
- * @property {number=} verbosity Amount of output to produce.  Higher numbers
- * produce more output.  Lower (i.e. more negative) numbers produce less.
- * (default: 0)
  */
 
 function filterByDate(builds, after, before) {

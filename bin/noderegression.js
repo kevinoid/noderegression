@@ -170,15 +170,16 @@ function noderegressionCmd(args, options, callback) {
     }
 
     // Parse arguments then call API function with parsed options
+    const verbosity = argOpts.verbose - argOpts.quiet;
     const cmdOpts = {
       env: options.env,
-      fetch: options.verbosity < 0 ? fetch : (reqInfo, reqInit) => {
+      fetch: verbosity < 0 ? fetch : (reqInfo, reqInit) => {
         options.stderr.write(`Downloading ${reqInfo.url || reqInfo}...\n`);
         return fetch(reqInfo, reqInit);
       },
       listeners: {
         onrange: (low, high) => {
-          if (options.verbosity >= 0) {
+          if (verbosity >= 0) {
             const count = high - low + 1;
             const steps = Math.ceil(Math.log2(count)) + 1;
             options.stderr.write(
@@ -188,7 +189,7 @@ function noderegressionCmd(args, options, callback) {
         },
         onresult: (build, code, signal) => {
           const goodbad = code === 0 ? 'good' : 'bad';
-          if (options.verbosity >= 1) {
+          if (verbosity >= 1) {
             const exitStr =
               signal ? `killed by ${signal}` : `exit code ${code}`;
             options.stderr.write(
@@ -207,7 +208,6 @@ function noderegressionCmd(args, options, callback) {
       targets: argOpts.target,
       stderr: options.stderr,
       stdout: options.stdout,
-      verbosity: argOpts.verbose - argOpts.quiet,
     };
     try {
       const [goodBuild, badBuild] =
