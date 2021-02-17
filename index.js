@@ -54,11 +54,18 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * @property {boolean} security Build is for security support.
  */
 
+/** noderegression listener functions.
+ *
+ * @typedef {!object} NoderegressionListeners
+ * @property {function(!BuildInfo, ?number, ?string)=} onresult Listener
+ * function which is called after the test command finishes executing, with the
+ * tested Node.js build information, test exit code, and name of the signal by
+ * which the test was terminated.
+ */
+
 /** noderegression Options
  *
  * @typedef {!object} NoderegressionOptions
- * @property {module:stream.Writable=} bisectLog Stream to which bisect
- * progress will be written, in the format produced by `git bisect log`.
  * @property {string=} buildCacheDir Directory below which Node.js builds are
  * saved (with the same path as added to {@link buildBaseUrl}). (default:
  * ${OS-specific user cache directory}/noderegression)
@@ -72,6 +79,7 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * of os.tmpdir())
  * @property {module:node-fetch.RequestInit=} fetchOptions Options passed to
  * node-fetch when downloading Node.js builds or the build list JSON.
+ * @property {NoderegressionListeners=} listeners Event listener functions.
  * @property {Array<string>=} targets Build target names (matching
  * {@link BuildInfo.files}) on which to find a regression.  First match for
  * each build is used. (default: targets for current platform)
@@ -272,6 +280,7 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
   // Keep the connection alive for downloading multiple builds
   const agent = ensureAgent(options);
 
+  const listeners = options.listeners || {};
   let found;
   try {
     found = await binarySearchAsync(
@@ -288,16 +297,8 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
           throw new Error('skip not yet implemented for exit code 125');
         }
 
-        const goodbad = code === 0 ? 'good' : 'bad';
-        if (options.verbosity >= 1) {
-          options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
-        }
-        if (options.bisectLog) {
-          // Output progress in format compatible with `git bisect log`
-          options.bisectLog.write(
-            `# ${goodbad}: ${build.version}\n`
-            + `git bisect ${goodbad} ${build.commit}\n`,
-          );
+        if (listeners.onresult) {
+          listeners.onresult(build, code, signal);
         }
 
         return code === 0 ? 1 : -1;

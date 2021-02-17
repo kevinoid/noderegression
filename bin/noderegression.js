@@ -170,8 +170,22 @@ function noderegressionCmd(args, options, callback) {
 
     // Parse arguments then call API function with parsed options
     const cmdOpts = {
-      bisectLog,
       env: options.env,
+      listeners: {
+        onresult: (build, code, signal) => {
+          const goodbad = code === 0 ? 'good' : 'bad';
+          if (options.verbosity >= 1) {
+            options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
+          }
+          if (bisectLog) {
+            // Output progress in format compatible with `git bisect log`
+            bisectLog.write(
+              `# ${goodbad}: ${build.version}\n`
+              + `git bisect ${goodbad} ${build.commit}\n`,
+            );
+          }
+        },
+      },
       targets: argOpts.target,
       stderr: options.stderr,
       stdout: options.stdout,
