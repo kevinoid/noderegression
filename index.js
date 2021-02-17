@@ -81,7 +81,9 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * extracted, then executed, for each build. (default: a temporary subdirectory
  * of os.tmpdir())
  * @property {module:node-fetch.RequestInit=} fetchOptions Options passed to
- * node-fetch when downloading Node.js builds or the build list JSON.
+ * {@link fetch} when downloading Node.js builds or the build list JSON.
+ * @property {module:node-fetch.fetch=} fetch Fetch function compatible with
+ * node-fetch for downloading builds and the build list.
  * @property {NoderegressionListeners=} listeners Event listener functions.
  * @property {Array<string>=} targets Build target names (matching
  * {@link BuildInfo.files}) on which to find a regression.  First match for
@@ -201,6 +203,7 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
     const allBuilds = await getBuildList(
       `${options.buildBaseUrl}index.json`,
       options.fetchOptions,
+      options.fetch,
     );
     const dateBuilds = filterByDate(allBuilds, good, bad);
     if (dateBuilds.length === 0) {
