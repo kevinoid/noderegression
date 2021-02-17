@@ -175,7 +175,11 @@ function noderegressionCmd(args, options, callback) {
         onresult: (build, code, signal) => {
           const goodbad = code === 0 ? 'good' : 'bad';
           if (options.verbosity >= 1) {
-            options.stderr.write(`Build ${build.version} tested ${goodbad}\n`);
+            const exitStr =
+              signal ? `killed by ${signal}` : `exit code ${code}`;
+            options.stderr.write(
+              `Build ${build.version} ${exitStr} (${goodbad})\n`,
+            );
           }
           if (bisectLog) {
             // Output progress in format compatible with `git bisect log`

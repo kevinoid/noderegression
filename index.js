@@ -280,7 +280,8 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
   // Keep the connection alive for downloading multiple builds
   const agent = ensureAgent(options);
 
-  const listeners = options.listeners || {};
+  const { onresult } = options.listeners || {};
+
   let found;
   try {
     found = await binarySearchAsync(
@@ -297,8 +298,8 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
           throw new Error('skip not yet implemented for exit code 125');
         }
 
-        if (listeners.onresult) {
-          listeners.onresult(build, code, signal);
+        if (onresult) {
+          onresult(build, code, signal);
         }
 
         return code === 0 ? 1 : -1;
