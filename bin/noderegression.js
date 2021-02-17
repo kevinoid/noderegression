@@ -169,9 +169,16 @@ function noderegressionCmd(args, options, callback) {
       });
     }
 
-    // Parse arguments then call API function with parsed options
     const verbosity = argOpts.verbose - argOpts.quiet;
+    // eslint-disable-next-line no-console
+    const logger = new console.Console(options.stdout, options.stderr);
+    if (verbosity < -1) { logger.warn = () => {}; }
+    if (verbosity < 0) { logger.info = () => {}; }
+    if (verbosity < 1) { logger.debug = () => {}; }
+
+    // Parse arguments then call API function with parsed options
     const cmdOpts = {
+      console: logger,
       env: options.env,
       fetch: verbosity < 0 ? fetch : (reqInfo, reqInit) => {
         options.stderr.write(`Downloading ${reqInfo.url || reqInfo}...\n`);
@@ -206,8 +213,6 @@ function noderegressionCmd(args, options, callback) {
         },
       },
       targets: argOpts.target,
-      stderr: options.stderr,
-      stdout: options.stdout,
     };
     try {
       const [goodBuild, badBuild] =

@@ -15,14 +15,13 @@ const { Agent: HttpAgent } = require('http');
 const { Agent: HttpsAgent } = require('https');
 const os = require('os');
 const path = require('path');
-const { debuglog, promisify } = require('util');
+const { promisify } = require('util');
 
 const binarySearchAsync = require('./lib/binary-search-async.js');
 const getBuildList = require('./lib/get-build-list.js');
 const getNodeTargetsForOS = require('./lib/get-node-targets-for-os.js');
 const runNodeBuild = require('./lib/run-node-build.js');
 
-const debug = debuglog('noderegression');
 const {
   mkdir,
   rmdir,
@@ -33,8 +32,8 @@ const randomBytes = promisify(crypto.randomBytes);
 
 const defaultOptions = {
   buildBaseUrl: 'https://nodejs.org/download/nightly/',
+  console,
   env: process.env,
-  stderr: process.stderr,
 };
 const minBuildDateMs = Date.UTC(2016, 0, 28);
 
@@ -66,6 +65,15 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * which the test was terminated.
  */
 
+/** noderegression console-like logger.
+ *
+ * @typedef {!object} NoderegressionConsole
+ * @property {function(*, ...*)} debug Log format+args at debug level.
+ * @property {function(*, ...*)} error Log format+args at error level.
+ * @property {function(*, ...*)} info Log format+args at info level.
+ * @property {function(*, ...*)} warn Log format+args at warn level.
+ */
+
 /** noderegression Options
  *
  * @typedef {!object} NoderegressionOptions
@@ -75,6 +83,8 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * @property {string=} buildBaseUrl URL from which to download the build list
  * (as index.json) and referenced builds. (default:
  * https://nodejs.org/download/nightly/)
+ * @property {NoderegressionConsole=} console Logger used to report
+ * user-relevant information. (default: global console)
  * @property {object<string,string>=} env Environment variables. (default: =
  * process.env)
  * @property {string=} exeDir Directory to which the Node.js executable will be
@@ -88,8 +98,6 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * @property {Array<string>=} targets Build target names (matching
  * {@link BuildInfo.files}) on which to find a regression.  First match for
  * each build is used. (default: targets for current platform)
- * @property {!module:stream.Writable=} stderr Stream to which errors and
- * non-output status messages are written.  (default: process.stderr)
  */
 
 function filterByDate(builds, after, before) {
@@ -121,7 +129,7 @@ function* getBuildTargetPairs(builds, targets) {
  */
 function ensureAgent(options) {
   if (options.fetchOptions && options.fetchOptions.agent) {
-    debug('Using caller-provided http.Agent.');
+    options.console.debug('Using caller-provided http.Agent.');
     return undefined;
   }
 
@@ -130,11 +138,14 @@ function ensureAgent(options) {
     : protocol === 'http:' ? HttpAgent
       : undefined;
   if (!Agent) {
-    debug('Unable to create keep-alive Agent for %s.', protocol);
+    options.console.debug(
+      'Unable to create keep-alive Agent for %s.',
+      protocol,
+    );
     return undefined;
   }
 
-  debug('Creating keep-alive http.Agent.');
+  options.console.debug('Creating keep-alive http.Agent.');
   const agent = new Agent({ keepAlive: true });
   options.fetchOptions = {
     ...options.fetchOptions,
@@ -188,8 +199,8 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
   }
 
   if (good && good.getTime() <= minBuildDateMs) {
-    options.stderr.write(
-      'Warning: Node.js 0.12 and 0.10 builds are not considered due to '
+    options.console.warn(
+      'Node.js 0.12 and 0.10 builds are not considered due to '
       + 'dates out of sequence and differing exe URLs.',
     );
   }
@@ -320,8 +331,10 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
       try {
         await rmdir(options.exeDir, { recursive: true });
       } catch (errRm) {
-        options.stderr.write(
-          `Unable to remove temp dir ${options.exeDir}: ${errRm}\n`,
+        options.console.error(
+          'Unable to remove temp dir %s: %o',
+          options.exeDir,
+          errRm,
         );
       }
     }
