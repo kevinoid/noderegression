@@ -223,8 +223,10 @@ function noderegressionCmd(args, options, callback) {
       const bisectRange2 = options.bisectRange || bisectRange;
       const [goodBuild, badBuild] =
         await bisectRange2(argOpts.good, argOpts.bad, argOpts._, cmdOpts);
-      options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
-      options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
+      if (verbosity >= 0) {
+        options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
+        options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
+      }
     } catch (err2) {
       exitCode = 1;
       options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
