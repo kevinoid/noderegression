@@ -171,7 +171,7 @@ function noderegressionCmd(args, options, callback) {
 
     const verbosity = argOpts.verbose - argOpts.quiet;
     // eslint-disable-next-line no-console
-    const logger = new console.Console(options.stdout, options.stderr);
+    const logger = new console.Console(options.stderr);
     if (verbosity < -1) { logger.warn = () => {}; }
     if (verbosity < 0) { logger.info = () => {}; }
     if (verbosity < 1) { logger.debug = () => {}; }
