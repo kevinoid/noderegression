@@ -265,8 +265,12 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
     options.buildCacheDir = path.join(cacheDir, 'noderegression');
   }
 
-  if (!options.targets) {
+  if (options.targets === undefined) {
     options.targets = getNodeTargetsForOS(os);
+  } else if (!Array.isArray(options.targets)) {
+    throw new TypeError('options.targets must be an Array');
+  } else if (options.targets.length === 0) {
+    throw new RangeError('options.targets must not be empty');
   }
 
   const buildTargetPairs = [...getBuildTargetPairs(builds, options.targets)];
