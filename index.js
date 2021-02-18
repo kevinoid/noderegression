@@ -9,18 +9,17 @@
 
 'use strict';
 
-const crypto = require('crypto');
 const fs = require('fs');
 const { Agent: HttpAgent } = require('http');
 const { Agent: HttpsAgent } = require('https');
 const os = require('os');
 const path = require('path');
-const { promisify } = require('util');
 
 const binarySearchAsync = require('./lib/binary-search-async.js');
 const getBuildList = require('./lib/get-build-list.js');
 const getNodeTargetsForOS = require('./lib/get-node-targets-for-os.js');
 const runNodeBuild = require('./lib/run-node-build.js');
+const tmpName = require('./lib/tmp-name.js');
 
 const {
   mkdir,
@@ -28,7 +27,6 @@ const {
 // https://github.com/mysticatea/eslint-plugin-node/issues/174
 // eslint-disable-next-line node/no-unsupported-features/node-builtins
 } = fs.promises;
-const randomBytes = promisify(crypto.randomBytes);
 
 const defaultOptions = {
   buildBaseUrl: 'https://nodejs.org/download/nightly/',
@@ -280,18 +278,13 @@ async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
 
   const rmExeDir = !options.exeDir;
   if (!options.exeDir) {
-    const randomSuffixBytes = await randomBytes(6);
-    // TODO [engine:node@>=15.7]: Use base64url
-    const randomSuffix = randomSuffixBytes.toString('base64')
-      // Filename-safe base64url variant from RFC 4648
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
-    // Note: /tmp might be mounted noexec
+    // Note: Need directory not mounted noexec
     // Can't check without statfs:
     // https://stackoverflow.com/a/15711534
     // https://github.com/nodejs/node/issues/10745
     // https://github.com/nodejs/node/pull/31351
-    options.exeDir = path.join(os.tmpdir(), `noderegression-${randomSuffix}`);
+    // Caller is responsible for setting env or exeDir as necessary.
+    options.exeDir = await tmpName();
     await mkdir(options.exeDir, { mode: 0o755 });
   }
 
