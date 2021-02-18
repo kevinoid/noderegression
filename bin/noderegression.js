@@ -18,6 +18,7 @@ const { promisify } = require('util');
 
 const { bisectRange } = require('..');
 const packageJson = require('../package.json');
+const parseBuildVersion = require('../lib/parse-build-version.js');
 
 // TODO [engine:node@>=15]: Use finished from 'streams/promise'
 const finished = promisify(stream.finished);
@@ -26,7 +27,17 @@ function buildToString(build) {
   if (!build) {
     return 'None found';
   }
-  return `${build.commit} on ${build.date}`;
+
+  const {
+    year,
+    month,
+    day,
+    commit,
+  } = parseBuildVersion(build.version);
+
+  return `${commit} on ${year}-${
+    String(month).padStart(2, '0')}-${
+    String(day).padStart(2, '0')}`;
 }
 
 function coerceDateUTC(str) {
