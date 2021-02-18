@@ -120,15 +120,18 @@ function noderegressionCmd(args, options, callback) {
       alias: ['b', 'new'],
       coerce: coerceDateUTC,
       describe: 'first date when issue was present',
+      nargs: 1,
     })
     .option('good', {
       alias: ['g', 'old'],
       coerce: coerceDateUTC,
       describe: 'last date when issue was not present',
+      nargs: 1,
     })
     .option('log', {
       alias: 'l',
       describe: 'save git bisect log to file',
+      nargs: 1,
     })
     .option('quiet', {
       alias: 'q',
@@ -139,6 +142,7 @@ function noderegressionCmd(args, options, callback) {
       alias: 't',
       describe: 'Build files to test.  '
         + 'May be given multiple times in preference order.',
+      nargs: 1,
     })
     .option('verbose', {
       alias: 'v',
