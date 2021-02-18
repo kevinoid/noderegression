@@ -125,7 +125,8 @@ function noderegressionCmd(args, options, callback) {
     })
     .option('target', {
       alias: 't',
-      describe: 'Build target name(s) in preference order',
+      describe: 'Build files to test.  '
+        + 'May be given multiple times in preference order.',
     })
     .option('verbose', {
       alias: 'v',
