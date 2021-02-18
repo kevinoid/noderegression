@@ -110,6 +110,7 @@ function noderegressionCmd(args, options, callback) {
       'duplicate-arguments-array': false,
       'flatten-duplicate-arrays': false,
       'greedy-arrays': false,
+      'halt-at-non-option': true,
     })
     .usage('Usage: $0 [options] -- <node args...>')
     .help()
