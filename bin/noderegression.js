@@ -40,12 +40,28 @@ function buildToString(build) {
     String(day).padStart(2, '0')}`;
 }
 
-function coerceDateUTC(str) {
-  const date = new Date(str);
-  if (Number.isNaN(date.getTime())) {
+function coerceDate(str) {
+  let date = new Date(str);
+  const dateMs = date.getTime();
+  if (Number.isNaN(dateMs)) {
     throw new TypeError(`Invalid Date: ${str}`);
   }
-  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+
+  const dayMs = dateMs % (24 * 60 * 60 * 1000);
+  if (dayMs !== 0) {
+    const dayMins = dayMs / (60 * 1000);
+    if (dayMins !== date.getTimezoneOffset()) {
+      // Accepting time leads to too many ambiguities and potential errors.
+      // (e.g. 'YYYY-MM-DD' parsed as UTC, 'MM/DD/YYYY' parsed as local time)
+      // Build time is not known (currently treated as midnight UTC, which
+      // may not match user expectations).
+      throw new RangeError(`Date with time not supported: ${str}`);
+    }
+
+    date = new Date(dateMs - dayMs);
+  }
+
+  return date;
 }
 
 /** Options for command entry points.
@@ -118,13 +134,13 @@ function noderegressionCmd(args, options, callback) {
     .alias('help', '?')
     .option('bad', {
       alias: ['b', 'new'],
-      coerce: coerceDateUTC,
+      coerce: coerceDate,
       describe: 'first date when issue was present',
       nargs: 1,
     })
     .option('good', {
       alias: ['g', 'old'],
-      coerce: coerceDateUTC,
+      coerce: coerceDate,
       describe: 'last date when issue was not present',
       nargs: 1,
     })
