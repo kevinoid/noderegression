@@ -108,13 +108,12 @@ function filterByDate(builds, after, before) {
 }
 
 function* getBuildTargetPairs(builds, targets) {
-  // Surround needle and haystack with separator for easy string set search
-  const commaTargets = targets.map((t) => `,${t},`);
   for (const build of builds) {
-    const commaFiles = `,${build.files},`;
-    const matchInd = commaTargets.findIndex((ct) => commaFiles.includes(ct));
-    if (matchInd >= 0) {
-      yield [build, targets[matchInd]];
+    for (const target of targets) {
+      if (build.files.includes(target)) {
+        yield [build, target];
+        break;
+      }
     }
   }
 }
