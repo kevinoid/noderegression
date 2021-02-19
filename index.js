@@ -189,6 +189,28 @@ exports.getBuildList = getBuildList;
  */
 exports.bisectRange =
 async function bisectRange(good, bad, testCmdWithArgs, options) {
+  if (good !== undefined) {
+    if (!(good instanceof Date)) {
+      throw new TypeError('good must be a Date');
+    }
+    if (good.getTime() % (24 * 60 * 60 * 1000) !== 0) {
+      throw new RangeError('good must be at midnight UTC');
+    }
+  }
+  if (bad !== undefined) {
+    if (!(bad instanceof Date)) {
+      throw new TypeError('bad must be a Date');
+    }
+    if (bad.getTime() % (24 * 60 * 60 * 1000) !== 0) {
+      throw new RangeError('bad must be at midnight UTC');
+    }
+  }
+  if (good !== undefined
+    && bad !== undefined
+    && good.getTime() >= bad.getTime()) {
+    throw new RangeError(`bad (${formatDate(bad)}) must be after good (${
+      formatDate(good)}) to bisect`);
+  }
   if (!testCmdWithArgs
     || typeof testCmdWithArgs[Symbol.iterator] !== 'function') {
     throw new TypeError('testCmdWithArgs must be iterable');
