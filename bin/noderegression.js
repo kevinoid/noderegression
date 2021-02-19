@@ -303,11 +303,13 @@ function noderegressionCmd(args, options, callback) {
       targets:
         argOpts.target !== undefined ? ensureArray(argOpts.target) : undefined,
     };
+    let openingLogs = true;
     try {
       // Ensure log files can be opened before bisecting
       if (logsOpen.length > 0) {
         await Promise.all(logsOpen);
       }
+      openingLogs = false;
 
       const bisectRange2 = options.bisectRange || bisectRange;
       const [goodBuild, badBuild] =
@@ -318,7 +320,10 @@ function noderegressionCmd(args, options, callback) {
       }
     } catch (err2) {
       exitCode = 1;
-      options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
+      options.stderr.write(
+        openingLogs ? `Error opening log file: ${err2}`
+          : `Unhandled exception:\n${err2.stack}\n`,
+      );
     } finally {
       for (const bisectLog of bisectLogs) {
         if (bisectLog !== options.stdout) {
