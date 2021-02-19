@@ -1,16 +1,133 @@
 /**
- * @copyright Copyright 2016 Kevin Locke <kevin@kevinlocke.name>
+ * @copyright Copyright 2021 Kevin Locke <kevin@kevinlocke.name>
  * @license MIT
  */
 
 'use strict';
 
-const modulename = require('..');
+const assert = require('assert');
 
-describe('modulename', () => {
-  it('does something', (done) => {
-    // Assert something about modulename here
-    modulename.func();
-    done();
+const { bisectRange, bisectBuilds } = require('..');
+const buildIndex = require('../test-data/build-index.json');
+
+const testBuilds = buildIndex.slice(0, 1);
+
+describe('bisectBuilds', () => {
+  it('rejects if builds is undefined', () => {
+    assert.rejects(
+      () => bisectBuilds(undefined, ['cmd']),
+      TypeError,
+    );
+  });
+
+  it('rejects if builds is not iterable', () => {
+    assert.rejects(
+      () => bisectBuilds({}, ['cmd']),
+      TypeError,
+    );
+  });
+
+  it('rejects if builds is empty', () => {
+    assert.rejects(
+      () => bisectBuilds([], ['cmd']),
+      Error,
+    );
+  });
+
+  it('rejects if testCmd is undefined', () => {
+    assert.rejects(
+      () => bisectBuilds(testBuilds),
+      TypeError,
+    );
+  });
+
+  it('rejects if testCmd is not iterable', () => {
+    assert.rejects(
+      () => bisectBuilds(testBuilds, {}),
+      TypeError,
+    );
+  });
+
+  // Note: Could wrap string to Array, but may confuse callers that expect
+  // the string to be shell interpreted (i.e. split on white space).
+  it('rejects if testCmd is a string', () => {
+    assert.rejects(
+      () => bisectBuilds(testBuilds, 'test'),
+      TypeError,
+    );
+  });
+
+  it('rejects if options is not an object', () => {
+    assert.rejects(
+      () => bisectBuilds(testBuilds, ['cmd'], 'test'),
+      TypeError,
+    );
+  });
+});
+
+describe('bisectRange', () => {
+  it('rejects if good is not a Date', () => {
+    assert.rejects(
+      () => bisectRange('invalid'),
+      TypeError,
+    );
+  });
+
+  it('rejects if good is not at midnight UTC', () => {
+    assert.rejects(
+      () => bisectRange(new Date(2020, 0, 1, 12)),
+      RangeError,
+    );
+  });
+
+  it('rejects if bad is not a Date', () => {
+    assert.rejects(
+      () => bisectRange(undefined, 'invalid'),
+      TypeError,
+    );
+  });
+
+  it('rejects if bad is not at midnight UTC', () => {
+    assert.rejects(
+      () => bisectRange(undefined, new Date(2020, 0, 1, 12)),
+      RangeError,
+    );
+  });
+
+  it('rejects if bad is before good', () => {
+    assert.rejects(
+      () => bisectRange(new Date(2020, 0, 2), new Date(2020, 0, 1)),
+      RangeError,
+    );
+  });
+
+  it('rejects if testCmd is undefined', () => {
+    assert.rejects(
+      () => bisectRange(),
+      TypeError,
+    );
+  });
+
+  it('rejects if testCmd is not iterable', () => {
+    assert.rejects(
+      () => bisectRange(undefined, undefined, {}),
+      TypeError,
+    );
+  });
+
+  // Note: Could wrap string to Array, but may confuse callers that expect
+  // the string to be shell interpreted (i.e. split on white space).
+  it('rejects if testCmd is a string', () => {
+    assert.rejects(
+      () => bisectRange(undefined, undefined, 'test'),
+      TypeError,
+    );
+  });
+
+  it('rejects if options is not an object', () => {
+    assert.rejects(
+      () => bisectRange(undefined, undefined, ['cmd'], 'test'),
+      TypeError,
+    );
   });
 });
