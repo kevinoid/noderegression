@@ -13,15 +13,17 @@
 const Yargs = require('yargs/yargs');
 const fetch = require('node-fetch');
 const fs = require('fs');
-const stream = require('stream');
-const { promisify } = require('util');
+const { finished } = require('stream');
 
 const { bisectRange } = require('..');
 const packageJson = require('../package.json');
 const parseBuildVersion = require('../lib/parse-build-version.js');
 
-// TODO [engine:node@>=15]: Use finished from 'streams/promise'
-const finished = promisify(stream.finished);
+function finishedErrorOk(stream, options) {
+  return new Promise((resolve) => {
+    finished(stream, options, resolve);
+  });
+}
 
 function buildToString(build) {
   if (!build) {
@@ -210,19 +212,27 @@ function noderegressionCmd(args, options, callback) {
         : argOpts.bad;
 
     let exitCode = 0;
+    const logsFinished = [];
+    const logsOpen = [];
+    const bisectLogs = [];
     function onBisectLogError(errLog) {
       exitCode = 1;
       options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
-    }
 
-    const logsOpen = [];
-    const bisectLogs = ensureArray(argOpts.log).map((logName) => {
+      // Not writable after error due to autoDestroy.  Remove.
+      const i = bisectLogs.indexOf(this);
+      if (i >= 0) {
+        bisectLogs.splice(i, 1);
+      }
+    }
+    for (const logName of ensureArray(argOpts.log)) {
       let bisectLog;
       if (logName === '-') {
         bisectLog = options.stdout;
         bisectLog.on('error', onBisectLogError);
       } else {
         bisectLog = fs.createWriteStream(logName);
+
         // Promise for 'open' or 'error'
         // 'error' after 'open' handled by onBisectLogError
         logsOpen.push(new Promise((resolve, reject) => {
@@ -232,9 +242,14 @@ function noderegressionCmd(args, options, callback) {
           });
           bisectLog.once('error', reject);
         }));
+
+        // Note: finished not reliable after 'error'.  Register early.
+        // https://github.com/nodejs/node/issues/34108
+        // Note: 'error' handled above, ignore for finish.
+        logsFinished.push(finishedErrorOk(bisectLog));
       }
-      return bisectLog;
-    });
+      bisectLogs.push(bisectLog);
+    }
 
     const verbosity = argOpts.verbose - argOpts.quiet;
     // eslint-disable-next-line no-console
@@ -305,16 +320,13 @@ function noderegressionCmd(args, options, callback) {
       exitCode = 1;
       options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
     } finally {
-      await Promise.all(bisectLogs.map(async (bisectLog) => {
+      for (const bisectLog of bisectLogs) {
         if (bisectLog !== options.stdout) {
           bisectLog.end();
-          try {
-            await finished(bisectLog);
-          } catch {
-            // error already logged from 'error' event
-          }
         }
-      }));
+      }
+
+      await logsFinished;
     }
 
     callback(exitCode);
