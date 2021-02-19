@@ -212,8 +212,9 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
       formatDate(good)}) to bisect`);
   }
   if (!testCmdWithArgs
+    || typeof testCmdWithArgs === 'string'
     || typeof testCmdWithArgs[Symbol.iterator] !== 'function') {
-    throw new TypeError('testCmdWithArgs must be iterable');
+    throw new TypeError('testCmdWithArgs must be iterable of strings');
   }
   if (options !== undefined && typeof options !== 'object') {
     throw new TypeError('options must be an object');
@@ -269,7 +270,14 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
  * first-bad builds in bisected range.
  */
 exports.bisectBuilds =
-async function bisectBuilds(builds, [testCommand, ...testArgs], options) {
+async function bisectBuilds(builds, testCmdWithArgs, options) {
+  if (!testCmdWithArgs
+    || typeof testCmdWithArgs === 'string'
+    || typeof testCmdWithArgs[Symbol.iterator] !== 'function') {
+    throw new TypeError('testCmdWithArgs must be iterable of strings');
+  }
+
+  const [testCommand, ...testArgs] = testCmdWithArgs;
   if (!testCommand || typeof testCommand !== 'string') {
     throw new TypeError('testCommand must be a non-empty string');
   }
