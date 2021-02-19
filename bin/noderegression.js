@@ -64,6 +64,17 @@ function coerceDate(str) {
   return date;
 }
 
+function coerceDateOrArray(strOrArray) {
+  return Array.isArray(strOrArray) ? strOrArray.map(coerceDate)
+    : coerceDate(strOrArray);
+}
+
+function ensureArray(val) {
+  return val === undefined || val === null ? []
+    : Array.isArray(val) ? val
+      : [val];
+}
+
 /** Options for command entry points.
  *
  * @typedef {{
@@ -123,7 +134,7 @@ function noderegressionCmd(args, options, callback) {
     .parserConfiguration({
       'parse-numbers': false,
       'parse-positional-numbers': false,
-      'duplicate-arguments-array': false,
+      'duplicate-arguments-array': true,
       'flatten-duplicate-arrays': false,
       'greedy-arrays': false,
       'halt-at-non-option': true,
@@ -134,13 +145,13 @@ function noderegressionCmd(args, options, callback) {
     .alias('help', '?')
     .option('bad', {
       alias: ['b', 'new'],
-      coerce: coerceDate,
+      coerce: coerceDateOrArray,
       describe: 'first date when issue was present',
       nargs: 1,
     })
     .option('good', {
       alias: ['g', 'old'],
-      coerce: coerceDate,
+      coerce: coerceDateOrArray,
       describe: 'last date when issue was not present',
       nargs: 1,
     })
@@ -190,17 +201,24 @@ function noderegressionCmd(args, options, callback) {
       return;
     }
 
+    // Only need last good and first bad dates for bisecting.
+    const good =
+      Array.isArray(argOpts.good) ? new Date(Math.max(...argOpts.good))
+        : argOpts.good;
+    const bad =
+      Array.isArray(argOpts.bad) ? new Date(Math.min(...argOpts.bad))
+        : argOpts.bad;
+
     let exitCode = 0;
-    let bisectLog;
-    if (argOpts.log === '-') {
-      bisectLog = options.stdout;
-    } else if (argOpts.log) {
-      bisectLog = fs.createWriteStream(argOpts.log);
+    const bisectLogs = ensureArray(argOpts.log).map((logName) => {
+      const bisectLog =
+        logName === '-' ? options.stdout : fs.createWriteStream(logName);
       bisectLog.on('error', (errLog) => {
         exitCode = 1;
         options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
       });
-    }
+      return bisectLog;
+    });
 
     const verbosity = argOpts.verbose - argOpts.quiet;
     // eslint-disable-next-line no-console
@@ -240,8 +258,9 @@ function noderegressionCmd(args, options, callback) {
               `Build ${build.version} ${exitStr} (${goodbad})\n`,
             );
           }
-          if (bisectLog) {
-            const { commit } = parseBuildVersion(build.version);
+
+          const { commit } = parseBuildVersion(build.version);
+          for (const bisectLog of bisectLogs) {
             // Output progress in format compatible with `git bisect log`
             bisectLog.write(
               `# ${goodbad}: ${build.version}\n`
@@ -250,12 +269,13 @@ function noderegressionCmd(args, options, callback) {
           }
         },
       },
-      targets: argOpts.target,
+      targets:
+        argOpts.target !== undefined ? ensureArray(argOpts.target) : undefined,
     };
     try {
       const bisectRange2 = options.bisectRange || bisectRange;
       const [goodBuild, badBuild] =
-        await bisectRange2(argOpts.good, argOpts.bad, argOpts._, cmdOpts);
+        await bisectRange2(good, bad, argOpts._, cmdOpts);
       if (verbosity >= 0) {
         options.stderr.write(`Last good build: ${buildToString(goodBuild)}\n`);
         options.stderr.write(`First bad build: ${buildToString(badBuild)}\n`);
@@ -264,14 +284,16 @@ function noderegressionCmd(args, options, callback) {
       exitCode = 1;
       options.stderr.write(`Unhandled exception:\n${err2.stack}\n`);
     } finally {
-      if (bisectLog && bisectLog !== options.stdout) {
-        bisectLog.end();
-        try {
-          await finished(bisectLog);
-        } catch {
-          // error already logged from 'error' event
+      await Promise.all(bisectLogs.map(async (bisectLog) => {
+        if (bisectLog !== options.stdout) {
+          bisectLog.end();
+          try {
+            await finished(bisectLog);
+          } catch {
+            // error already logged from 'error' event
+          }
         }
-      }
+      }));
     }
 
     callback(exitCode);
