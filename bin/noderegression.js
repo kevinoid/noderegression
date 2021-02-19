@@ -220,10 +220,11 @@ function noderegressionCmd(args, options, callback) {
             );
           }
           if (bisectLog) {
+            const { commit } = parseBuildVersion(build.version);
             // Output progress in format compatible with `git bisect log`
             bisectLog.write(
               `# ${goodbad}: ${build.version}\n`
-              + `git bisect ${goodbad} ${build.commit}\n`,
+              + `git bisect ${goodbad} ${commit}\n`,
             );
           }
         },
