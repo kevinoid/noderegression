@@ -151,6 +151,17 @@ function ensureAgent(options) {
   return agent;
 }
 
+function formatDate(date) {
+  let dateStr = date.toISOString();
+
+  const midnight = 'T00:00:00.000Z';
+  if (dateStr.endsWith(midnight)) {
+    dateStr = dateStr.slice(0, -midnight.length);
+  }
+
+  return dateStr;
+}
+
 // FIXME: Duplicated with doc in lib/get-build-list.js
 // Would like to use @borrows, but can't find a way to make it work.
 // @borrows module:lib/get-build-list.getBuildList as getBuildList
@@ -213,7 +224,7 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
     const dateBuilds = filterByDate(allBuilds, good, bad);
     if (dateBuilds.length === 0) {
       throw new Error(
-        `No builds after ${good.toUTCString()} before ${bad.toUTCString()}`,
+        `No builds after ${formatDate(good)} before ${formatDate(bad)}`,
       );
     }
 
