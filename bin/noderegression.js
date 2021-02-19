@@ -210,13 +210,29 @@ function noderegressionCmd(args, options, callback) {
         : argOpts.bad;
 
     let exitCode = 0;
+    function onBisectLogError(errLog) {
+      exitCode = 1;
+      options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
+    }
+
+    const logsOpen = [];
     const bisectLogs = ensureArray(argOpts.log).map((logName) => {
-      const bisectLog =
-        logName === '-' ? options.stdout : fs.createWriteStream(logName);
-      bisectLog.on('error', (errLog) => {
-        exitCode = 1;
-        options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
-      });
+      let bisectLog;
+      if (logName === '-') {
+        bisectLog = options.stdout;
+        bisectLog.on('error', onBisectLogError);
+      } else {
+        bisectLog = fs.createWriteStream(logName);
+        // Promise for 'open' or 'error'
+        // 'error' after 'open' handled by onBisectLogError
+        logsOpen.push(new Promise((resolve, reject) => {
+          bisectLog.once('open', () => {
+            bisectLog.on('error', onBisectLogError);
+            resolve();
+          });
+          bisectLog.once('error', reject);
+        }));
+      }
       return bisectLog;
     });
 
@@ -273,6 +289,11 @@ function noderegressionCmd(args, options, callback) {
         argOpts.target !== undefined ? ensureArray(argOpts.target) : undefined,
     };
     try {
+      // Ensure log files can be opened before bisecting
+      if (logsOpen.length > 0) {
+        await Promise.all(logsOpen);
+      }
+
       const bisectRange2 = options.bisectRange || bisectRange;
       const [goodBuild, badBuild] =
         await bisectRange2(good, bad, argOpts._, cmdOpts);
