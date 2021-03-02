@@ -414,7 +414,7 @@ describe('noderegression command', () => {
     try {
       const exitCodeP = noderegressionCmdP(allArgs, options);
       // FIXME: No easy way to wait for open event
-      await setTimeoutP(10);
+      await setTimeoutP(100);
       sinon.assert.callCount(bisectRange, 1);
       const brOptions = bisectRange.getCall(0).args[3];
       brOptions.listeners.onresult(buildIndex[2], 1, null);
