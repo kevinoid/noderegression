@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-import assert from '@kevinoid/assert-shim';
+import assert from 'assert';
 // TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
 import { promises as fsPromises } from 'fs';
 import sinon from 'sinon';
