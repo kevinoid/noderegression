@@ -14,10 +14,10 @@ const stream = require('stream');
 const timers = require('timers');
 const { promisify } = require('util');
 
-const buildIndex = require('../../test-data/build-index.json');
-const noderegressionCmd = require('../../bin/noderegression.js');
-const packageJson = require('../../package.json');
-const tmpName = require('../../lib/tmp-name.js');
+const buildIndex = require('../test-data/build-index.json');
+const noderegressionCmd = require('../cli.js');
+const packageJson = require('../package.json');
+const tmpName = require('../lib/tmp-name.js');
 
 const { match } = sinon;
 // TODO [engine:node@>=15]: import { setImmediate } from 'timers/promises';
