@@ -9,8 +9,6 @@
 const { Command, InvalidOptionArgumentError } = require('commander');
 const fetch = require('node-fetch');
 // TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
-// https://github.com/mysticatea/eslint-plugin-node/issues/174
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
 const { createWriteStream, promises: fsPromises } = require('fs');
 const path = require('path');
 const { finished } = require('stream');

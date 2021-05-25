@@ -24,8 +24,6 @@ const tmpName = require('./lib/tmp-name.js');
 const {
   mkdir,
   rmdir,
-// https://github.com/mysticatea/eslint-plugin-node/issues/174
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
 } = fs.promises;
 
 const defaultOptions = {

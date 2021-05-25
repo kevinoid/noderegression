@@ -6,8 +6,6 @@
 'use strict';
 
 const assert = require('@kevinoid/assert-shim');
-// https://github.com/mysticatea/eslint-plugin-node/issues/174
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
 const { readFile, unlink } = require('fs').promises;
 const sinon = require('sinon');
 const stream = require('stream');
