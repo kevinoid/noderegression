@@ -67,6 +67,20 @@ describe('noderegression command', () => {
     );
   });
 
+  it('throws Error for empty args', () => {
+    assert.throws(
+      () => noderegressionCmd([], getTestOptions(), neverCalled),
+      Error,
+    );
+  });
+
+  it('throws Error for one arg', () => {
+    assert.throws(
+      () => noderegressionCmd(['node'], getTestOptions(), neverCalled),
+      Error,
+    );
+  });
+
   it('throws TypeError for non-function callback', () => {
     assert.throws(
       () => { noderegressionCmd(testRuntimeArgs, getTestOptions(), true); },

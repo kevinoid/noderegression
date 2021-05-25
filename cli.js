@@ -101,10 +101,8 @@ function noderegressionCmd(args, options, callback) {
     throw new TypeError('callback must be a function');
   }
 
-  if (args !== undefined
-      && args !== null
-      && Math.floor(args.length) !== args.length) {
-    throw new TypeError('args must be Array-like');
+  if (!Array.isArray(args) || args.length < 2) {
+    throw new TypeError('args must be an Array with at least 2 items');
   }
 
   if (!options || typeof options !== 'object') {
