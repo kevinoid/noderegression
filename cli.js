@@ -118,13 +118,10 @@ async function readJson(pathOrUrl, options) {
  *
  * @param {Array<string>} args Command-line arguments.
  * @param {!CommandOptions} options Options.
- * @param {function(number)} callback Callback with exit code.
+ * @returns {!Promise<number>} Promise for exit code.  Only rejected for
+ * arguments with invalid type (or args.length < 2).
  */
-function noderegressionCmd(args, options, callback) {
-  if (typeof callback !== 'function') {
-    throw new TypeError('callback must be a function');
-  }
-
+async function noderegressionMain(args, options) {
   if (!Array.isArray(args) || args.length < 2) {
     throw new TypeError('args must be an Array with at least 2 items');
   }
@@ -143,12 +140,6 @@ function noderegressionCmd(args, options, callback) {
     throw new TypeError('options.stderr must be a stream.Writable');
   }
 
-  // Temporary workaround to minimize diff for Promise conversion.
-  // eslint-disable-next-line
-  noderegressionMain(args, options).then(callback);
-}
-
-async function noderegressionMain(args, options) {
   let good;
   function parseGood(optarg) {
     const date = parseDate(optarg);
@@ -356,4 +347,4 @@ async function noderegressionMain(args, options) {
   return exitCode;
 }
 
-module.exports = noderegressionCmd;
+module.exports = noderegressionMain;

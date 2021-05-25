@@ -15,7 +15,7 @@ const timers = require('timers');
 const { promisify } = require('util');
 
 const buildIndex = require('../test-data/build-index.json');
-const noderegressionCmd = require('../cli.js');
+const noderegressionMain = require('../cli.js');
 const packageJson = require('../package.json');
 const tmpName = require('../lib/tmp-name.js');
 
@@ -31,12 +31,6 @@ const testRuntimeArgs = ['node', 'noderegression'];
 const testGoodBad = [buildIndex[1], buildIndex[0]];
 const testGoodBadOut = 'Last good build: 8353854ed7 on 2021-02-17\n'
   + 'First bad build: 9a2ac2c615 on 2021-02-18\n';
-
-function noderegressionCmdP(...args) {
-  return new Promise((resolve) => {
-    noderegressionCmd(...args, resolve);
-  });
-}
 
 function neverCalled() {
   assert.fail('Should never be called');
@@ -54,43 +48,36 @@ function getTestOptions() {
 
 describe('noderegression command', () => {
   it('throws TypeError with no arguments', () => {
-    assert.throws(
-      noderegressionCmd,
+    return assert.rejects(
+      noderegressionMain,
       TypeError,
     );
   });
 
   it('throws TypeError for non-array-like args', () => {
-    assert.throws(
-      () => noderegressionCmd({}, getTestOptions(), neverCalled),
+    return assert.rejects(
+      () => noderegressionMain({}, getTestOptions()),
       TypeError,
     );
   });
 
   it('throws Error for empty args', () => {
-    assert.throws(
-      () => noderegressionCmd([], getTestOptions(), neverCalled),
+    return assert.rejects(
+      () => noderegressionMain([], getTestOptions()),
       Error,
     );
   });
 
   it('throws Error for one arg', () => {
-    assert.throws(
-      () => noderegressionCmd(['node'], getTestOptions(), neverCalled),
+    return assert.rejects(
+      () => noderegressionMain(['node'], getTestOptions()),
       Error,
     );
   });
 
-  it('throws TypeError for non-function callback', () => {
-    assert.throws(
-      () => { noderegressionCmd(testRuntimeArgs, getTestOptions(), true); },
-      TypeError,
-    );
-  });
-
   it('throws TypeError for non-object options', () => {
-    assert.throws(
-      () => { noderegressionCmd(testRuntimeArgs, true, neverCalled); },
+    return assert.rejects(
+      () => noderegressionMain(testRuntimeArgs, true),
       TypeError,
     );
   });
@@ -100,8 +87,8 @@ describe('noderegression command', () => {
       ...getTestOptions(),
       stdin: {},
     };
-    assert.throws(
-      () => { noderegressionCmd(testRuntimeArgs, options, neverCalled); },
+    return assert.rejects(
+      () => noderegressionMain(testRuntimeArgs, options),
       TypeError,
     );
   });
@@ -111,8 +98,8 @@ describe('noderegression command', () => {
       ...getTestOptions(),
       stdout: new stream.Readable(),
     };
-    assert.throws(
-      () => { noderegressionCmd(testRuntimeArgs, options, neverCalled); },
+    return assert.rejects(
+      () => noderegressionMain(testRuntimeArgs, options),
       TypeError,
     );
   });
@@ -122,8 +109,8 @@ describe('noderegression command', () => {
       ...getTestOptions(),
       stderr: new stream.Readable(),
     };
-    assert.throws(
-      () => { noderegressionCmd(testRuntimeArgs, options, neverCalled); },
+    return assert.rejects(
+      () => noderegressionMain(testRuntimeArgs, options),
       TypeError,
     );
   });
@@ -135,7 +122,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, 'cmd'], options);
     sinon.assert.callCount(bisectRange, 1);
     assert.strictEqual(exitCode, 0);
     assert.strictEqual(options.stdout.read(), null);
@@ -149,7 +136,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, 'cmd'], options);
     sinon.assert.callCount(bisectRange, 1);
     assert.strictEqual(exitCode, 0);
     assert.strictEqual(options.stdout.read(), null);
@@ -167,7 +154,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, '--quiet', 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, '--quiet', 'cmd'], options);
     sinon.assert.callCount(bisectRange, 1);
     assert.strictEqual(exitCode, 0);
     assert.strictEqual(options.stdout.read(), null);
@@ -182,7 +169,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, '--quiet', 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, '--quiet', 'cmd'], options);
     sinon.assert.callCount(bisectRange, 1);
     assert.strictEqual(exitCode, 1);
     assert.strictEqual(options.stdout.read(), null);
@@ -196,7 +183,7 @@ describe('noderegression command', () => {
     it(`${helpOpt} prints help message to stdout`, async () => {
       const args = [...testRuntimeArgs, helpOpt];
       const options = getTestOptions();
-      const exitCode = await noderegressionCmdP(args, options);
+      const exitCode = await noderegressionMain(args, options);
       assert.strictEqual(exitCode, 0);
       assert.strictEqual(options.stderr.read(), null);
       const output = options.stdout.read();
@@ -209,7 +196,7 @@ describe('noderegression command', () => {
     it(`${versionOpt} prints version message to stdout`, async () => {
       const args = [...testRuntimeArgs, versionOpt];
       const options = getTestOptions();
-      const exitCode = await noderegressionCmdP(args, options);
+      const exitCode = await noderegressionMain(args, options);
       assert.strictEqual(exitCode, 0);
       assert.strictEqual(options.stderr.read(), null);
       const output = options.stdout.read();
@@ -223,7 +210,7 @@ describe('noderegression command', () => {
       ...getTestOptions(),
       bisectRange,
     };
-    noderegressionCmdP([...testRuntimeArgs, 'cmd'], options);
+    noderegressionMain([...testRuntimeArgs, 'cmd'], options);
     await setImmediateP();
     sinon.assert.callCount(bisectRange, 1);
     const brOptions = bisectRange.getCall(0).args[3];
@@ -244,7 +231,7 @@ describe('noderegression command', () => {
       env: testEnv,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, 'cmd'], options);
     assert.strictEqual(exitCode, 0);
     assert.strictEqual(options.stderr.read(), testGoodBadOut);
     assert.strictEqual(options.stdout.read(), null);
@@ -268,7 +255,7 @@ describe('noderegression command', () => {
         ...getTestOptions(),
         bisectRange,
       };
-      const exitCode = await noderegressionCmdP(allArgs, options);
+      const exitCode = await noderegressionMain(allArgs, options);
       assert.strictEqual(exitCode, 0);
       assert.strictEqual(options.stderr.read(), testGoodBadOut);
       assert.strictEqual(options.stdout.read(), null);
@@ -392,7 +379,7 @@ describe('noderegression command', () => {
       ...getTestOptions(),
       bisectRange,
     };
-    const exitCodeP = noderegressionCmdP(allArgs, options);
+    const exitCodeP = noderegressionMain(allArgs, options);
     await setImmediateP();
     sinon.assert.callCount(bisectRange, 1);
     const brOptions = bisectRange.getCall(0).args[3];
@@ -426,7 +413,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     try {
-      const exitCodeP = noderegressionCmdP(allArgs, options);
+      const exitCodeP = noderegressionMain(allArgs, options);
       // FIXME: No easy way to wait for open event
       await setTimeoutP(1000);
       sinon.assert.callCount(bisectRange, 1);
@@ -470,7 +457,7 @@ describe('noderegression command', () => {
         ...getTestOptions(),
         bisectRange,
       };
-      noderegressionCmdP(allArgs, options);
+      noderegressionMain(allArgs, options);
       await setImmediateP();
       sinon.assert.callCount(bisectRange, 1);
       assert.strictEqual(options.stdout.read(), null);
@@ -500,7 +487,7 @@ describe('noderegression command', () => {
     it(`prints error and exits for ${args.join(' ')}`, async () => {
       const allArgs = [...testRuntimeArgs, ...args];
       const options = getTestOptions();
-      const exitCode = await noderegressionCmdP(allArgs, options);
+      const exitCode = await noderegressionMain(allArgs, options);
       assert.strictEqual(exitCode, 1);
       assert.strictEqual(options.stdout.read(), null);
       assert.match(options.stderr.read(), expectErrMsg);
@@ -542,7 +529,7 @@ describe('noderegression command', () => {
       bisectRange,
     };
     const exitCode =
-      await noderegressionCmdP([...testRuntimeArgs, 'cmd'], options);
+      await noderegressionMain([...testRuntimeArgs, 'cmd'], options);
     assert.strictEqual(exitCode, 1);
     assert.strictEqual(options.stdout.read(), null);
     assert.match(options.stderr.read(), new RegExp(errTest));
