@@ -3,20 +3,18 @@
  * @license MIT
  */
 
-'use strict';
+import assert from '@kevinoid/assert-shim';
+// TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
+import { promises as fsPromises } from 'fs';
+import sinon from 'sinon';
+import stream from 'stream';
+import timers from 'timers';
+import { promisify } from 'util';
 
-const assert = require('@kevinoid/assert-shim');
-const { readFile, unlink } = require('fs').promises;
-const sinon = require('sinon');
-const stream = require('stream');
-const timers = require('timers');
-const { promisify } = require('util');
+import noderegressionMain from '../cli.js';
+import tmpName from '../lib/tmp-name.js';
 
-const buildIndex = require('../test-data/build-index.json');
-const noderegressionMain = require('../cli.js');
-const packageJson = require('../package.json');
-const tmpName = require('../lib/tmp-name.js');
-
+const { readFile, unlink } = fsPromises;
 const { match } = sinon;
 // TODO [engine:node@>=15]: import { setImmediate } from 'timers/promises';
 const setImmediateP = promisify(timers.setImmediate);
@@ -26,9 +24,25 @@ const setTimeoutP = promisify(timers.setTimeout);
 // Simulate arguments passed by the node runtime
 const testRuntimeArgs = ['node', 'noderegression'];
 // Good/Bad build pair for testing
-const testGoodBad = [buildIndex[1], buildIndex[0]];
+let testGoodBad;
 const testGoodBadOut = 'Last good build: 8353854ed7 on 2021-02-17\n'
   + 'First bad build: 9a2ac2c615 on 2021-02-18\n';
+
+let buildIndex;
+before(async () => {
+  const buildIndexUrl =
+    new URL('../test-data/build-index.json', import.meta.url);
+  const content = await readFile(buildIndexUrl, { encoding: 'utf8' });
+  buildIndex = JSON.parse(content);
+  testGoodBad = [buildIndex[1], buildIndex[0]];
+});
+
+let packageJson;
+before(async () => {
+  const packageJsonUrl = new URL('../package.json', import.meta.url);
+  const content = await readFile(packageJsonUrl, { encoding: 'utf8' });
+  packageJson = JSON.parse(content);
+});
 
 function neverCalled() {
   assert.fail('Should never be called');

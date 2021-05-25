@@ -7,19 +7,17 @@
  * @module noderegression
  */
 
-'use strict';
+import fs from 'fs';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
+import os from 'os';
+import path from 'path';
 
-const fs = require('fs');
-const { Agent: HttpAgent } = require('http');
-const { Agent: HttpsAgent } = require('https');
-const os = require('os');
-const path = require('path');
-
-const binarySearchAsync = require('./lib/binary-search-async.js');
-const getBuildList = require('./lib/get-build-list.js');
-const getNodeTargetsForOS = require('./lib/get-node-targets-for-os.js');
-const runNodeBuild = require('./lib/run-node-build.js');
-const tmpName = require('./lib/tmp-name.js');
+import binarySearchAsync from './lib/binary-search-async.js';
+import getBuildList from './lib/get-build-list.js';
+import getNodeTargetsForOS from './lib/get-node-targets-for-os.js';
+import runNodeBuild from './lib/run-node-build.js';
+import tmpName from './lib/tmp-name.js';
 
 const {
   mkdir,
@@ -172,7 +170,8 @@ function formatDate(date) {
  * @returns {!Array<!module:noderegression.BuildInfo>} Builds to bisect in
  * commit order.
  */
-exports.getBuildList = getBuildList;
+// eslint-disable-next-line import/no-unused-modules
+export { getBuildList };
 
 /** Performs regression range reduction, using bisection, on Node.js builds
  * within a given date range.
@@ -185,8 +184,7 @@ exports.getBuildList = getBuildList;
  * @returns {!Array<!BuildInfo>} Pair (i.e. 2-element Array) of last-good and
  * first-bad builds in bisected range.
  */
-exports.bisectRange =
-async function bisectRange(good, bad, testCmdWithArgs, options) {
+export async function bisectRange(good, bad, testCmdWithArgs, options) {
   if (good !== undefined) {
     if (!(good instanceof Date)) {
       throw new TypeError('good must be a Date');
@@ -249,13 +247,14 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
       );
     }
 
-    return await exports.bisectBuilds(dateBuilds, testCmdWithArgs, options);
+    // eslint-disable-next-line no-use-before-define
+    return await bisectBuilds(dateBuilds, testCmdWithArgs, options);
   } finally {
     if (agent) {
       agent.destroy();
     }
   }
-};
+}
 
 /** Performs regression range reduction, using bisection, on a given Array of
  * Node.js build.
@@ -267,8 +266,7 @@ async function bisectRange(good, bad, testCmdWithArgs, options) {
  * @returns {!Array<!BuildInfo>} Pair (i.e. 2-element Array) of last-good and
  * first-bad builds in bisected range.
  */
-exports.bisectBuilds =
-async function bisectBuilds(builds, testCmdWithArgs, options) {
+export async function bisectBuilds(builds, testCmdWithArgs, options) {
   if (!testCmdWithArgs
     || typeof testCmdWithArgs === 'string'
     || typeof testCmdWithArgs[Symbol.iterator] !== 'function') {
@@ -379,4 +377,4 @@ async function bisectBuilds(builds, testCmdWithArgs, options) {
   const goodBuild = buildTargetPairs[firstBadInd - 1][0];
   const badBuild = buildTargetPairs[firstBadInd][0];
   return [goodBuild, badBuild];
-};
+}

@@ -4,17 +4,14 @@
  * @module noderegression/cli.js
  */
 
-'use strict';
-
-const { Command, InvalidOptionArgumentError } = require('commander');
-const fetch = require('node-fetch');
+import { Command, InvalidOptionArgumentError } from 'commander';
+import fetch from 'node-fetch';
 // TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
-const { createWriteStream, promises: fsPromises } = require('fs');
-const path = require('path');
-const { finished } = require('stream');
+import { createWriteStream, promises as fsPromises } from 'fs';
+import { finished } from 'stream';
 
-const { bisectRange } = require('./index.js');
-const parseBuildVersion = require('./lib/parse-build-version.js');
+import { bisectRange } from './index.js';
+import parseBuildVersion from './lib/parse-build-version.js';
 
 const { readFile } = fsPromises;
 
@@ -119,7 +116,7 @@ async function readJson(pathOrUrl, options) {
  * @returns {!Promise<number>} Promise for exit code.  Only rejected for
  * arguments with invalid type (or args.length < 2).
  */
-async function noderegressionMain(args, options) {
+export default async function noderegressionMain(args, options) {
   if (!Array.isArray(args) || args.length < 2) {
     throw new TypeError('args must be an Array with at least 2 items');
   }
@@ -209,7 +206,7 @@ async function noderegressionMain(args, options) {
   } catch (errParse) {
     if (errVersion) {
       const packageJson =
-        await readJson(path.join(__dirname, 'package.json'));
+        await readJson(new URL('package.json', import.meta.url));
       options.stdout.write(`${packageJson.version}\n`);
       return 0;
     }
@@ -344,5 +341,3 @@ async function noderegressionMain(args, options) {
 
   return exitCode;
 }
-
-module.exports = noderegressionMain;

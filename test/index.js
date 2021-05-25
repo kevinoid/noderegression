@@ -3,14 +3,22 @@
  * @license MIT
  */
 
-'use strict';
+import assert from 'assert';
+// TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
+import { promises as fsPromises } from 'fs';
 
-const assert = require('assert');
+import { bisectRange, bisectBuilds } from '../index.js';
 
-const { bisectRange, bisectBuilds } = require('..');
-const buildIndex = require('../test-data/build-index.json');
+const { readFile } = fsPromises;
 
-const testBuilds = buildIndex.slice(0, 1);
+let testBuilds;
+before(async () => {
+  const buildIndexUrl =
+    new URL('../test-data/build-index.json', import.meta.url);
+  const content = await readFile(buildIndexUrl, { encoding: 'utf8' });
+  const buildIndex = JSON.parse(content);
+  testBuilds = buildIndex.slice(0, 1);
+});
 
 describe('bisectBuilds', () => {
   it('rejects if builds is undefined', () => {
