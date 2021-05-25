@@ -192,7 +192,7 @@ describe('noderegression command', () => {
     );
   });
 
-  for (const helpOpt of ['--help', '-h', '-?']) {
+  for (const helpOpt of ['--help', '-h']) {
     it(`${helpOpt} prints help message to stdout`, async () => {
       const args = [...testRuntimeArgs, helpOpt];
       const options = getTestOptions();
@@ -213,7 +213,7 @@ describe('noderegression command', () => {
       assert.strictEqual(exitCode, 0);
       assert.strictEqual(options.stderr.read(), null);
       const output = options.stdout.read();
-      assert.strictEqual(output, `noderegression ${packageJson.version}\n`);
+      assert.strictEqual(output, `${packageJson.version}\n`);
     });
   }
 
@@ -508,11 +508,11 @@ describe('noderegression command', () => {
   }
 
   // Check argument errors are handled correctly
-  expectArgsErr([], /\bcommand\b/i);
-  expectArgsErr(['--'], /\bcommand\b/i);
-  expectArgsErr(['--bad', '2020-01-02'], /\bcommand\b/i);
-  expectArgsErr(['--bad', '2020-01-02', '--'], /\bcommand\b/i);
-  expectArgsErr(['--target', 'abc'], /\bcommand\b/i);
+  expectArgsErr([], /\btest_command\b/i);
+  expectArgsErr(['--'], /\btest_command\b/i);
+  expectArgsErr(['--bad', '2020-01-02'], /\btest_command\b/i);
+  expectArgsErr(['--bad', '2020-01-02', '--'], /\btest_command\b/i);
+  expectArgsErr(['--target', 'abc'], /\btest_command\b/i);
   expectArgsErr(['--bad', 'invalid', 'cmd'], /\bdate\b/i);
   expectArgsErr(
     ['--bad', new Date(2020, 0, 1, 2, 3).toISOString(), 'cmd'],
@@ -527,9 +527,11 @@ describe('noderegression command', () => {
   );
   expectArgsErr(['--good', '', 'cmd'], /\bdate\b/i);
   expectArgsErr(['-g', '--', 'cmd'], /\bdate\b/i);
-  expectArgsErr(['--log', '--', 'cmd'], /\blog\b/i);
   expectArgsErr(['--log', '', 'cmd'], /\blog\b/i);
-  expectArgsErr(['--target', '--', 'cmd'], /\btarget\b/i);
+  // Note: getopt libraries differ on how this is handled.
+  // commander treats -- as optarg for preceding option, which is not an error.
+  // expectArgsErr(['--log', '--', 'cmd'], /\blog\b/i);
+  // expectArgsErr(['--target', '--', 'cmd'], /\btarget\b/i);
   expectArgsErr(['--unknown123'], /\bunknown123\b/);
 
   it('prints bisectRange rejection to stderr', async () => {
