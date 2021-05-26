@@ -111,7 +111,7 @@ async function readJson(pathOrUrl, options) {
 
 /** Entry point for this command.
  *
- * @param {Array<string>} args Command-line arguments.
+ * @param {!Array<string>} args Command-line arguments.
  * @param {!CommandOptions} options Options.
  * @returns {!Promise<number>} Promise for exit code.  Only rejected for
  * arguments with invalid type (or args.length < 2).
