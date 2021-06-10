@@ -309,7 +309,9 @@ export async function bisectBuilds(builds, testCmdWithArgs, options) {
 
   const buildTargetPairs = [...getBuildTargetPairs(builds, options.targets)];
   if (buildTargetPairs.length === 0) {
-    throw new Error(`No builds in given range for ${options.targets.join()}`);
+    throw new Error(
+      `No builds in given range for ${options.targets.join(',')}`,
+    );
   }
 
   const rmExeDir = !options.exeDir;
