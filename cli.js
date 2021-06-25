@@ -166,10 +166,6 @@ export default async function noderegressionMain(args, options) {
     // Stop parsing at first non-option.
     // https://github.com/tj/commander.js/issues/1127#issuecomment-754230279
     .passThroughOptions()
-    // Check for required/excess arguments.
-    // Workaround https://github.com/tj/commander.js/issues/1493
-    // TODO [commander@>=8]: Remove if fixed
-    .action(() => {})
     .description('Reduce a regression range using Node.js nightly builds.')
     .option('-b, --bad <date>', 'first date when issue was present', parseBad)
     // Note: can't alias options or add additional long name
