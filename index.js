@@ -95,6 +95,10 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  */
 
 function filterByDate(builds, after, before) {
+  if (!after && !before) {
+    return builds;
+  }
+
   const afterStr =
     after ? after.toISOString().slice(0, 10) : '0000-00-00';
   const beforeStr =
