@@ -35,7 +35,7 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  *
  * @typedef {!object} BuildInfo
  * @property {string} version Version string (vX.Y.Z-nightlyYYYYMMDDHASH).
- * @property {string} date Build date (YYYY-MM-DD).
+ * @property {string} date mtime of build artifact directory (YYYY-MM-DD).
  * @property {!Array<string>} files Build target name ($platform-$arch-$format).
  * @property {string} npm NPM version in build.
  * @property {string} v8 V8 version in build.
