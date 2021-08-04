@@ -100,7 +100,7 @@ function filterByDate(builds, after, before) {
   const beforeStr =
     before ? before.toISOString().slice(0, 10) : '9999-99-99';
 
-  return builds.filter(({ date }) => date < afterStr || date > beforeStr);
+  return builds.filter(({ date }) => date > afterStr && date < beforeStr);
 }
 
 function* getBuildTargetPairs(builds, targets) {
