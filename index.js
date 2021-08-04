@@ -17,6 +17,7 @@ import binarySearchAsync from './lib/binary-search-async.js';
 import getBuildList from './lib/get-build-list.js';
 import getNodeTargetsForOS from './lib/get-node-targets-for-os.js';
 import runNodeBuild from './lib/run-node-build.js';
+import splitBuildVersion from './lib/split-build-version.js';
 import tmpName from './lib/tmp-name.js';
 
 const {
@@ -100,11 +101,14 @@ function filterByDate(builds, after, before) {
   }
 
   const afterStr =
-    after ? after.toISOString().slice(0, 10) : '0000-00-00';
+    after ? after.toISOString().slice(0, 10).replace(/-/g, '') : '00000000';
   const beforeStr =
-    before ? before.toISOString().slice(0, 10) : '9999-99-99';
+    before ? before.toISOString().slice(0, 10).replace(/-/g, '') : '99999999';
 
-  return builds.filter(({ date }) => date > afterStr && date < beforeStr);
+  return builds.filter(({ version }) => {
+    const [, ymd] = splitBuildVersion(version);
+    return ymd > afterStr && ymd < beforeStr;
+  });
 }
 
 function* getBuildTargetPairs(builds, targets) {
