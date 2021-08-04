@@ -12,6 +12,7 @@ import { finished } from 'stream';
 
 import { bisectRange } from './index.js';
 import splitBuildVersion from './lib/split-build-version.js';
+import { addDashes } from './lib/ymd-utils.js';
 
 const { readFile } = fsPromises;
 
@@ -27,8 +28,7 @@ function buildToString(build) {
   }
 
   const [, ymd, commit] = splitBuildVersion(build.version);
-  return `${commit} on ${
-    ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`;
+  return `${commit} on ${addDashes(ymd)}`;
 }
 
 /** Option parser to combine multiple occurrences occurrences of an option
