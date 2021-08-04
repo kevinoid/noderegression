@@ -11,7 +11,7 @@ import { createWriteStream, promises as fsPromises } from 'fs';
 import { finished } from 'stream';
 
 import { bisectRange } from './index.js';
-import parseBuildVersion from './lib/parse-build-version.js';
+import splitBuildVersion from './lib/split-build-version.js';
 
 const { readFile } = fsPromises;
 
@@ -26,16 +26,9 @@ function buildToString(build) {
     return 'None found';
   }
 
-  const {
-    year,
-    month,
-    day,
-    commit,
-  } = parseBuildVersion(build.version);
-
-  return `${commit} on ${year}-${
-    String(month).padStart(2, '0')}-${
-    String(day).padStart(2, '0')}`;
+  const [, ymd, commit] = splitBuildVersion(build.version);
+  return `${commit} on ${
+    ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`;
 }
 
 /** Option parser to combine multiple occurrences occurrences of an option
@@ -292,7 +285,7 @@ export default async function noderegressionMain(args, options) {
           );
         }
 
-        const { commit } = parseBuildVersion(build.version);
+        const [,, commit] = splitBuildVersion(build.version);
         for (const bisectLog of bisectLogs) {
           // Output progress in format compatible with `git bisect log`
           bisectLog.write(
