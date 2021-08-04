@@ -242,9 +242,9 @@ export async function bisectRange(good, bad, testCmdWithArgs, options) {
     );
     const dateBuilds = filterByDate(allBuilds, good, bad);
     if (dateBuilds.length === 0) {
-      throw new Error(
-        `No builds after ${formatDate(good)} before ${formatDate(bad)}`,
-      );
+      throw new Error(`No builds${
+        good ? ` after ${formatDate(good)}` : ''}${
+        bad ? ` before ${formatDate(bad)}` : ''}`);
     }
 
     // eslint-disable-next-line no-use-before-define
