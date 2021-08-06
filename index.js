@@ -166,6 +166,15 @@ function formatDate(date) {
   return dateStr;
 }
 
+/** Options for {@link getBuildList}.
+ *
+ * @typedef {!object} GetBuildListOptions
+ * @property {!module:node-fetch.fetch=} fetch Fetch function compatible with
+ * node-fetch for downloading the build list.
+ * @property {!module:node-fetch.RequestInit=} fetchOptions Options passed to
+ * {@link fetch} when downloading the build list.
+ */
+
 // FIXME: Duplicated with doc in lib/get-build-list.js
 // Would like to use @borrows, but can't find a way to make it work.
 // @borrows module:lib/get-build-list.getBuildList as getBuildList
@@ -174,7 +183,7 @@ function formatDate(date) {
  * @function
  * @param {string=} buildIndexUrl URL of JSON build list.
  * (default: https://nodejs.org/download/nightly/index.json)
- * @param {module:node-fetch.RequestInit=} options Fetch options.
+ * @param {!GetBuildListOptions=} options Options.
  * @returns {!Array<!module:noderegression.BuildInfo>} Builds to bisect in
  * commit order.
  */
@@ -245,8 +254,7 @@ export async function bisectRange(good, bad, testCmdWithArgs, options) {
   try {
     const allBuilds = await getBuildList(
       `${options.buildBaseUrl}index.json`,
-      options.fetchOptions,
-      options.fetch,
+      options,
     );
     const dateBuilds = filterByDate(allBuilds, good, bad);
     if (dateBuilds.length === 0) {
