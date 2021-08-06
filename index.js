@@ -78,19 +78,19 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * @property {string=} buildBaseUrl URL from which to download the build list
  * (as index.json) and referenced builds. (default:
  * https://nodejs.org/download/nightly/)
- * @property {NoderegressionConsole=} console Logger used to report
+ * @property {!NoderegressionConsole=} console Logger used to report
  * user-relevant information. (default: global console)
- * @property {object<string,string>=} env Environment variables. (default: =
+ * @property {!object<string,string>=} env Environment variables. (default: =
  * process.env)
  * @property {string=} exeDir Directory to which the Node.js executable will be
  * extracted, then executed, for each build. (default: a temporary subdirectory
  * of os.tmpdir())
- * @property {module:node-fetch.RequestInit=} fetchOptions Options passed to
+ * @property {!module:node-fetch.RequestInit=} fetchOptions Options passed to
  * {@link fetch} when downloading Node.js builds or the build list JSON.
- * @property {module:node-fetch.fetch=} fetch Fetch function compatible with
+ * @property {!module:node-fetch.fetch=} fetch Fetch function compatible with
  * node-fetch for downloading builds and the build list.
- * @property {NoderegressionListeners=} listeners Event listener functions.
- * @property {Array<string>=} targets Build target names (matching
+ * @property {!NoderegressionListeners=} listeners Event listener functions.
+ * @property {!Array<string>=} targets Build target names (matching
  * {@link BuildInfo.files}) on which to find a regression.  First match for
  * each build is used. (default: targets for current platform)
  */
