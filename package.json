@@ -23,6 +23,7 @@
   ],
   "exports": {
     ".": "./index.js",
+    "./cli.js": "./cli.js",
     "./package.json": "./package.json"
   },
   "bin": {
