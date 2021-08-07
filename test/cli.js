@@ -185,9 +185,9 @@ describe('noderegression command', () => {
     sinon.assert.callCount(bisectRange, 1);
     assert.strictEqual(exitCode, 1);
     assert.strictEqual(options.stdout.read(), null);
-    assert.match(
+    assert.strictEqual(
       options.stderr.read(),
-      new RegExp(`^Unhandled exception:\n${errTest}\n`),
+      `${errTest}\n`,
     );
   });
 

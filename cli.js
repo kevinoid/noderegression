@@ -315,8 +315,8 @@ export default async function noderegressionMain(args, options) {
   } catch (err2) {
     exitCode = 1;
     options.stderr.write(
-      openingLogs ? `Error opening log file: ${err2}`
-        : `Unhandled exception:\n${err2.stack}\n`,
+      `${openingLogs ? 'Error opening log file: ' : ''}${
+        verbosity >= 2 ? err2.stack : err2}\n`,
     );
   } finally {
     for (const bisectLog of bisectLogs) {
