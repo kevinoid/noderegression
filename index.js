@@ -173,6 +173,8 @@ function formatDate(date) {
  * node-fetch for downloading the build list.
  * @property {!module:node-fetch.RequestInit=} fetchOptions Options passed to
  * {@link fetch} when downloading the build list.
+ * @property {boolean=} strictOrder Throw an exception if build order is not
+ * known correct (e.g. builds on same date with unknown order)
  */
 
 // FIXME: Duplicated with doc in lib/get-build-list.js
