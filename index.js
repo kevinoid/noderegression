@@ -191,7 +191,7 @@ function formatDate(date) {
  * commit order.
  */
 // eslint-disable-next-line import/no-unused-modules
-export { getBuildList };
+export { default as getBuildList } from './lib/get-build-list.js';
 
 /** Performs regression range reduction, using bisection, on Node.js builds
  * within a given date range.
