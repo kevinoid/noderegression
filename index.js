@@ -190,7 +190,6 @@ function formatDate(date) {
  * @returns {!Array<!module:noderegression.BuildInfo>} Builds to bisect in
  * commit order.
  */
-// eslint-disable-next-line import/no-unused-modules
 export { default as getBuildList } from './lib/get-build-list.js';
 
 /** Performs regression range reduction, using bisection, on Node.js builds

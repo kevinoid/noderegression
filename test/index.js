@@ -7,7 +7,8 @@ import assert from 'assert';
 // TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
 import { promises as fsPromises } from 'fs';
 
-import { bisectRange, bisectBuilds } from '../index.js';
+import { bisectRange, bisectBuilds, getBuildList } from '../index.js';
+import getBuildListPrivate from '../lib/get-build-list.js';
 
 const { readFile } = fsPromises;
 
@@ -137,5 +138,12 @@ describe('bisectRange', () => {
       () => bisectRange(undefined, undefined, ['cmd'], 'test'),
       TypeError,
     );
+  });
+});
+
+describe('getBuildList', () => {
+  // Tests are in test/get-build-list.js
+  it('is exported from ./lib/get-build-list.js', () => {
+    assert.strictEqual(getBuildList, getBuildListPrivate);
   });
 });
