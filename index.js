@@ -105,6 +105,7 @@ function filterByDate(builds, after, before) {
   const beforeStr =
     before ? before.toISOString().slice(0, 10).replace(/-/g, '') : '99999999';
 
+  // TODO: binary search
   return builds.filter(({ version }) => {
     const [, ymd] = splitBuildVersion(version);
     return ymd > afterStr && ymd < beforeStr;
