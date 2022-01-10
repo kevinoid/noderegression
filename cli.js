@@ -325,7 +325,7 @@ export default async function noderegressionMain(args, options) {
       }
     }
 
-    await logsFinished;
+    await Promise.all(logsFinished);
   }
 
   return exitCode;
