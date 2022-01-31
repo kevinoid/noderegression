@@ -4,7 +4,7 @@
  * @module "noderegression/cli.js"
  */
 
-import { Command, InvalidOptionArgumentError } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import fetch from 'node-fetch';
 // TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
 import { createWriteStream, promises as fsPromises } from 'fs';
@@ -58,7 +58,7 @@ function parseDate(str) {
   let date = new Date(str);
   const dateMs = date.getTime();
   if (Number.isNaN(dateMs)) {
-    throw new InvalidOptionArgumentError(`Invalid Date: ${str}`);
+    throw new InvalidArgumentError(`Invalid Date: ${str}`);
   }
 
   const dayMs = dateMs % (24 * 60 * 60 * 1000);
@@ -69,7 +69,7 @@ function parseDate(str) {
       // (e.g. 'YYYY-MM-DD' parsed as UTC, 'MM/DD/YYYY' parsed as local time)
       // Build time is not known (currently treated as midnight UTC, which
       // may not match user expectations).
-      throw new InvalidOptionArgumentError(
+      throw new InvalidArgumentError(
         `Date with time not supported: ${str}`,
       );
     }
