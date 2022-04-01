@@ -88,12 +88,12 @@ async function readJson(pathOrUrl, options) {
 /** Options for command entry points.
  *
  * @typedef {{
- *   env: object<string,string>|undefined,
+ *   env: Object<string,string>|undefined,
  *   stdin: !module:stream.Readable,
  *   stdout: !module:stream.Writable,
  *   stderr: !module:stream.Writable
  * }} CommandOptions
- * @property {object<string,string>=} env Environment variables.
+ * @property {Object<string,string>=} env Environment variables.
  * @property {!module:stream.Readable} stdin Stream from which input is read.
  * @property {!module:stream.Writable} stdout Stream to which output is
  * written.

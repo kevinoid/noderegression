@@ -80,7 +80,7 @@ const minBuildDateMs = Date.UTC(2016, 0, 28);
  * https://nodejs.org/download/nightly/)
  * @property {!NoderegressionConsole=} console Logger used to report
  * user-relevant information. (default: global console)
- * @property {!object<string,string>=} env Environment variables. (default: =
+ * @property {!Object<string,string>=} env Environment variables. (default: =
  * process.env)
  * @property {string=} exeDir Directory to which the Node.js executable will be
  * extracted, then executed, for each build. (default: a temporary subdirectory
