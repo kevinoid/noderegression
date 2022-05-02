@@ -4,8 +4,7 @@
  */
 
 import assert from 'assert';
-// TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
-import { promises as fsPromises } from 'fs';
+import { readFile, unlink } from 'fs/promises';
 import sinon from 'sinon';
 import stream from 'stream';
 import timers from 'timers';
@@ -14,7 +13,6 @@ import { promisify } from 'util';
 import noderegressionMain from '../cli.js';
 import tmpName from '../lib/tmp-name.js';
 
-const { readFile, unlink } = fsPromises;
 const { match } = sinon;
 // TODO [engine:node@>=15]: import { setImmediate } from 'timers/promises';
 const setImmediateP = promisify(timers.setImmediate);

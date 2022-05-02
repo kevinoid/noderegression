@@ -4,13 +4,10 @@
  */
 
 import assert from 'assert';
-// TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
-import { promises as fsPromises } from 'fs';
+import { readFile } from 'fs/promises';
 
 import { bisectRange, bisectBuilds, getBuildList } from '../index.js';
 import getBuildListPrivate from '../lib/get-build-list.js';
-
-const { readFile } = fsPromises;
 
 let testBuilds;
 before(async () => {

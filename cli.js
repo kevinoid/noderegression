@@ -6,15 +6,13 @@
 
 import { Command, InvalidArgumentError } from 'commander';
 import fetch from 'node-fetch';
-// TODO [engine:node@>=14]: import { readFile } from 'fs/promises'
-import { createWriteStream, promises as fsPromises } from 'fs';
+import { createWriteStream } from 'fs';
+import { readFile } from 'fs/promises';
 import { finished } from 'stream';
 
 import { bisectRange } from './index.js';
 import splitBuildVersion from './lib/split-build-version.js';
 import { addDashes } from './lib/ymd-utils.js';
-
-const { readFile } = fsPromises;
 
 function finishedErrorOk(stream, options) {
   return new Promise((resolve) => {
