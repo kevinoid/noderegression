@@ -7,9 +7,9 @@
 import { Command, InvalidArgumentError } from 'commander';
 // TODO [engine:node@>=17.5]: Use native fetch
 import fetch from 'node-fetch';
-import { createWriteStream } from 'fs';
-import { readFile } from 'fs/promises';
-import { finished } from 'stream';
+import { createWriteStream } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { finished } from 'node:stream';
 
 import { bisectRange } from './index.js';
 import splitBuildVersion from './lib/split-build-version.js';

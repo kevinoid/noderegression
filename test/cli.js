@@ -3,12 +3,12 @@
  * @license MIT
  */
 
-import assert from 'assert';
-import { readFile, unlink } from 'fs/promises';
+import assert from 'node:assert';
+import { readFile, unlink } from 'node:fs/promises';
 import sinon from 'sinon';
-import stream from 'stream';
-import timers from 'timers';
-import { promisify } from 'util';
+import stream from 'node:stream';
+import timers from 'node:timers';
+import { promisify } from 'node:util';
 
 import noderegressionMain from '../cli.js';
 import tmpName from '../lib/tmp-name.js';
