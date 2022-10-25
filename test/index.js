@@ -3,8 +3,8 @@
  * @license MIT
  */
 
-import assert from 'assert';
-import { readFile } from 'fs/promises';
+import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 
 import { bisectRange, bisectBuilds, getBuildList } from '../index.js';
 import getBuildListPrivate from '../lib/get-build-list.js';

@@ -7,11 +7,11 @@
  * @module noderegression
  */
 
-import fs from 'fs';
-import { Agent as HttpAgent } from 'http';
-import { Agent as HttpsAgent } from 'https';
-import os from 'os';
-import path from 'path';
+import fs from 'node:fs';
+import { Agent as HttpAgent } from 'node:http';
+import { Agent as HttpsAgent } from 'node:https';
+import os from 'node:os';
+import path from 'node:path';
 
 import binarySearchAsync from './lib/binary-search-async.js';
 import getBuildList from './lib/get-build-list.js';
