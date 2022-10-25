@@ -5,6 +5,7 @@
  */
 
 import { Command, InvalidArgumentError } from 'commander';
+// TODO [engine:node@>=17.5]: Use native fetch
 import fetch from 'node-fetch';
 import { createWriteStream } from 'fs';
 import { readFile } from 'fs/promises';
