@@ -1,7 +1,7 @@
 Noderegression
 ==============
 
-[![Build Status](https://img.shields.io/github/workflow/status/kevinoid/noderegression/Node.js%20CI/main.svg?style=flat&label=build)](https://github.com/kevinoid/noderegression/actions?query=branch%3Amain)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/kevinoid/noderegression/node.js.yml?branch=main&style=flat&label=build)](https://github.com/kevinoid/noderegression/actions?query=branch%3Amain)
 [![Coverage](https://img.shields.io/codecov/c/github/kevinoid/noderegression.svg?style=flat)](https://codecov.io/github/kevinoid/noderegression?branch=main)
 [![Dependency Status](https://img.shields.io/david/kevinoid/noderegression.svg?style=flat)](https://david-dm.org/kevinoid/noderegression)
 [![Supported Node Version](https://img.shields.io/node/v/noderegression.svg?style=flat)](https://www.npmjs.com/package/noderegression)
