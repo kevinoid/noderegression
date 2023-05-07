@@ -101,9 +101,9 @@ function filterByDate(builds, after, before) {
   }
 
   const afterStr =
-    after ? after.toISOString().slice(0, 10).replace(/-/g, '') : '00000000';
+    after ? after.toISOString().slice(0, 10).replaceAll('-', '') : '00000000';
   const beforeStr =
-    before ? before.toISOString().slice(0, 10).replace(/-/g, '') : '99999999';
+    before ? before.toISOString().slice(0, 10).replaceAll('-', '') : '99999999';
 
   // TODO: binary search
   return builds.filter(({ version }) => {
