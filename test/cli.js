@@ -7,17 +7,15 @@ import assert from 'node:assert';
 import { readFile, unlink } from 'node:fs/promises';
 import sinon from 'sinon';
 import stream from 'node:stream';
-import timers from 'node:timers';
-import { promisify } from 'node:util';
+import {
+  setImmediate as setImmediateP,
+  setTimeout as setTimeoutP,
+} from 'node:timers/promises';
 
 import noderegressionMain from '../cli.js';
 import tmpName from '../lib/tmp-name.js';
 
 const { match } = sinon;
-// TODO [engine:node@>=15]: import { setImmediate } from 'timers/promises';
-const setImmediateP = promisify(timers.setImmediate);
-// TODO [engine:node@>=15]: import { setTimeout } from 'timers/promises';
-const setTimeoutP = promisify(timers.setTimeout);
 
 // Simulate arguments passed by the node runtime
 const testRuntimeArgs = ['node', 'noderegression'];
