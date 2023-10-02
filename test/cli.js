@@ -5,12 +5,13 @@
 
 import assert from 'node:assert';
 import { readFile, unlink } from 'node:fs/promises';
-import sinon from 'sinon';
 import stream from 'node:stream';
 import {
   setImmediate as setImmediateP,
   setTimeout as setTimeoutP,
 } from 'node:timers/promises';
+
+import sinon from 'sinon';
 
 import noderegressionMain from '../cli.js';
 import tmpName from '../lib/tmp-name.js';
