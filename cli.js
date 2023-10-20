@@ -4,13 +4,11 @@
  * @module "noderegression/cli.js"
  */
 
-// TODO [engine:node@>=17.5]: Use native fetch
 import { createWriteStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { finished } from 'node:stream';
 
 import { Command, InvalidArgumentError } from 'commander';
-import fetch from 'node-fetch';
 
 import { bisectRange } from './index.js';
 import splitBuildVersion from './lib/split-build-version.js';

@@ -50,8 +50,7 @@
     "version-deps": "npm install conventional-changelog-cli david depcheck git-branch-is hub-ci-status"
   },
   "dependencies": {
-    "commander": "^11.0.0",
-    "node-fetch": "^3.0.0"
+    "commander": "^11.0.0"
   },
   "optionalDependencies": {
     "tar": "^6.0.5",
