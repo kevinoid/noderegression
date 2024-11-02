@@ -227,8 +227,17 @@ describe('noderegression command', () => {
     assert(brOptions.console instanceof console.Console);
     brOptions.console.info('info test');
     brOptions.console.error('error test');
+
+    // Note: Output of console.Console is colorized on Node.js >=20.15 <22.10
+    // due to nodejs/node#51629 and nodejs/node#54677
+    const testStream = new stream.PassThrough({ encoding: 'utf8' });
+    // eslint-disable-next-line no-console
+    const testConsole = new console.Console(testStream);
+    testConsole.info('info test');
+    testConsole.error('error test');
+
     assert.strictEqual(options.stdout.read(), null);
-    assert.strictEqual(options.stderr.read(), 'info test\nerror test\n');
+    assert.strictEqual(options.stderr.read(), testStream.read());
   });
 
   it('passes through options.env', async () => {
@@ -475,9 +484,19 @@ describe('noderegression command', () => {
       for (const level of ['debug', 'info', 'warn', 'error']) {
         brConsole[level](level);
       }
+
+      // Note: Output of console.Console is colorized on Node.js >=20.15 <22.10
+      // due to nodejs/node#51629 and nodejs/node#54677
+      const testStream = new stream.PassThrough({ encoding: 'utf8' });
+      // eslint-disable-next-line no-console
+      const testConsole = new console.Console(testStream);
+      for (const level of expectLevels) {
+        testConsole[level](level);
+      }
+
       assert.strictEqual(
         options.stderr.read(),
-        `${expectLevels.join('\n')}\n`,
+        testStream.read(),
       );
     });
   }
