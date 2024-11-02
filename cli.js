@@ -219,7 +219,7 @@ export default async function noderegressionMain(args, options) {
 
     // Not writable after error due to autoDestroy.  Remove.
     const i = bisectLogs.indexOf(this);
-    if (i >= 0) {
+    if (i !== -1) {
       bisectLogs.splice(i, 1);
     }
   }
