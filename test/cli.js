@@ -196,7 +196,7 @@ describe('noderegression command', () => {
       assert.strictEqual(exitCode, 0);
       assert.strictEqual(options.stderr.read(), null);
       const output = options.stdout.read();
-      assert(output, 'produces help output');
+      assert.ok(output, 'produces help output');
       assert.match(output, /--verbose\b/);
     });
   }
@@ -224,7 +224,7 @@ describe('noderegression command', () => {
     sinon.assert.callCount(bisectRange, 1);
     const brOptions = bisectRange.getCall(0).args[3];
     // eslint-disable-next-line no-console
-    assert(brOptions.console instanceof console.Console);
+    assert.ok(brOptions.console instanceof console.Console);
     brOptions.console.info('info test');
     brOptions.console.error('error test');
 
@@ -260,8 +260,8 @@ describe('noderegression command', () => {
   });
 
   function expectArgsAs(args, expectGood, expectBad, expectCmd, expectOptions) {
-    assert(Object.getPrototypeOf(args), Array.prototype);
-    assert(Object.getPrototypeOf(expectCmd), Array.prototype);
+    assert.ok(Object.getPrototypeOf(args), Array.prototype);
+    assert.ok(Object.getPrototypeOf(expectCmd), Array.prototype);
 
     const testDesc =
       `interprets ${args.join(' ')} as ${expectCmd.join(' ')}, ${
