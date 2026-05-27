@@ -54,6 +54,12 @@ export default [
       // Braces around body of it() function is more consistent/readable
       'arrow-body-style': 'off',
 
+      // Don't warn about using properties of default export instead of named
+      // sinon exports both <https://github.com/sinonjs/sinon/issues/2361>,
+      // while examples in docs on https://sinonjs.org/ use sinon.X
+      // I prefer sinon.X for clarity, so disable the warning.
+      'import/no-named-as-default-member': 'off',
+
       // Tests are not expected to have exports
       'import/no-unused-modules': 'off',
 
