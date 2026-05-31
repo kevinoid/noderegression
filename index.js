@@ -7,7 +7,7 @@
  * @module noderegression
  */
 
-import fs from 'node:fs';
+import { mkdir, rmdir } from 'node:fs/promises';
 import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import os from 'node:os';
@@ -19,11 +19,6 @@ import getNodeTargetsForOS from './lib/get-node-targets-for-os.js';
 import runNodeBuild from './lib/run-node-build.js';
 import splitBuildVersion from './lib/split-build-version.js';
 import tmpName from './lib/tmp-name.js';
-
-const {
-  mkdir,
-  rmdir,
-} = fs.promises;
 
 const defaultOptions = {
   buildBaseUrl: 'https://nodejs.org/download/nightly/',
