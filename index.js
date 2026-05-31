@@ -7,7 +7,7 @@
  * @module noderegression
  */
 
-import { mkdir, rmdir } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import os from 'node:os';
@@ -377,7 +377,7 @@ export async function bisectBuilds(builds, testCmdWithArgs, options) {
 
     if (rmExeDir) {
       try {
-        await rmdir(options.exeDir, { recursive: true });
+        await rm(options.exeDir, { recursive: true });
       } catch (errRm) {
         options.console.error(
           'Unable to remove temp dir %s: %o',
