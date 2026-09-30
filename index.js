@@ -327,7 +327,7 @@ export async function bisectBuilds(builds, testCmdWithArgs, options) {
     );
   }
 
-  const rmExeDir = !options.exeDir;
+  const shouldRmExeDir = !options.exeDir;
   if (!options.exeDir) {
     // Note: Need directory not mounted noexec
     // Can't check without statfs:
@@ -375,7 +375,7 @@ export async function bisectBuilds(builds, testCmdWithArgs, options) {
       agent.destroy();
     }
 
-    if (rmExeDir) {
+    if (shouldRmExeDir) {
       try {
         await rm(options.exeDir, { recursive: true });
       } catch (errRm) {

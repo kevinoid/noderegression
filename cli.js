@@ -301,13 +301,13 @@ export default async function noderegressionMain(args, options) {
     },
     targets: argOpts.target,
   };
-  let openingLogs = true;
+  let isOpeningLogs = true;
   try {
     // Ensure log files can be opened before bisecting
     if (logsOpen.length > 0) {
       await Promise.all(logsOpen);
     }
-    openingLogs = false;
+    isOpeningLogs = false;
 
     const bisectRange2 = options.bisectRange || bisectRange;
     const [goodBuild, badBuild] =
@@ -319,7 +319,7 @@ export default async function noderegressionMain(args, options) {
   } catch (err2) {
     exitCode = 1;
     options.stderr.write(
-      `${openingLogs ? 'Error opening log file: ' : ''}${
+      `${isOpeningLogs ? 'Error opening log file: ' : ''}${
         verbosity >= 2 ? err2.stack : err2}\n`,
     );
   } finally {
