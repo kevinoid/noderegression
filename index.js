@@ -112,6 +112,7 @@ function* getBuildTargetPairs(builds, targets) {
     for (const target of targets) {
       if (build.files.includes(target)) {
         yield [build, target];
+        // eslint-disable-next-line unicorn/no-break-in-nested-loop
         break;
       }
     }

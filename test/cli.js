@@ -30,7 +30,9 @@ before(async () => {
   const buildIndexUrl =
     new URL('../test-data/build-index.json', import.meta.url);
   const content = await readFile(buildIndexUrl, { encoding: 'utf8' });
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   buildIndex = JSON.parse(content);
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   testGoodBad = [buildIndex[1], buildIndex[0]];
 });
 
@@ -38,6 +40,7 @@ let packageJson;
 before(async () => {
   const packageJsonUrl = new URL('../package.json', import.meta.url);
   const content = await readFile(packageJsonUrl, { encoding: 'utf8' });
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   packageJson = JSON.parse(content);
 });
 
@@ -390,6 +393,8 @@ describe('noderegression command', () => {
   it('--log - cmd saves log to stdout', async () => {
     const allArgs = [...testRuntimeArgs, '--log', '-', 'cmd'];
     let resolveBisect;
+    // TODO[engine:node@>=22.11]: Use Promise.withResolvers
+    // eslint-disable-next-line unicorn/prefer-promise-with-resolvers
     const bisectRange = sinon.stub().returns(new Promise((resolve) => {
       resolveBisect = resolve;
     }));
@@ -423,6 +428,8 @@ describe('noderegression command', () => {
     const logPath = await tmpName();
     const allArgs = [...testRuntimeArgs, '-l', logPath, 'cmd'];
     let resolveBisect;
+    // TODO[engine:node@>=22.11]: Use Promise.withResolvers
+    // eslint-disable-next-line unicorn/prefer-promise-with-resolvers
     const bisectRange = sinon.stub().returns(new Promise((resolve) => {
       resolveBisect = resolve;
     }));

@@ -218,6 +218,7 @@ export default async function noderegressionMain(args, options) {
     options.stderr.write(`Error writing to bisect log: ${errLog}\n`);
 
     // Not writable after error due to autoDestroy.  Remove.
+    // eslint-disable-next-line unicorn/no-this-outside-of-class
     const i = bisectLogs.indexOf(this);
     if (i !== -1) {
       bisectLogs.splice(i, 1);

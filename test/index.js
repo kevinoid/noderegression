@@ -15,6 +15,7 @@ before(async () => {
     new URL('../test-data/build-index.json', import.meta.url);
   const content = await readFile(buildIndexUrl, { encoding: 'utf8' });
   const buildIndex = JSON.parse(content);
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   testBuilds = buildIndex.slice(0, 1);
 });
 
