@@ -223,7 +223,8 @@ export default async function noderegressionMain(args, options) {
       bisectLogs.splice(i, 1);
     }
   }
-  for (const logName of argOpts.log || []) {
+  const logNames = argOpts.log || [];
+  for (const logName of logNames) {
     let bisectLog;
     if (logName === '-') {
       bisectLog = options.stdout;
